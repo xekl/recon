@@ -2,52 +2,74 @@
 import requests
 import streamlit as st
 
+from groq import Groq
+groq_client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+
 # -----------------------------
-# Utility: Ollama LLM call
+# Utility: LLM call
 # -----------------------------
 
 def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
 
-    try:
-        response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={"model": model, 
-                  "system": system_prompt,
-                  "prompt": prompt,
-                  "stream": False, # TODO think about streaming for more dynamics
-                  "options": { # see doc for list https://github.com/ollama/ollama/blob/main/docs/api.md
-                      "temperature": 0.9,
-                  }
-                  },
-            timeout=30
-        )
-        data = response.json()
+    # generate via groq API
+    if model == "groq":
+
+        messages = []
+        messages.append({'role': "system", 'content': system_prompt})
+        messages.append({'role': "user", 'content': prompt})
+
+        print()
+        print()
+        print()
+        print("messages", messages)
+        print()
+        print()
+        print()
+
+        response = groq_client.chat.completions.create(
+            model = "llama-3.3-70b-versatile",
+            # max_tokens = max_tokens,
+            # temperature = temperature,
+            messages = messages)
+
+        # extract response text 
+        try:
+            result = response.choices[0].message.content
+        except:
+            print("error in response generation with", model)
+            print("response was:", response)
+            result = response
+
+        print("groq result:", result)
+        return result
+
+    # generate via ollama
+    else: 
+
+        try:
+            response = requests.post(
+                "http://localhost:11434/api/generate",
+                json={"model": model, 
+                    "system": system_prompt,
+                    "prompt": prompt,
+                    "stream": False, # TODO think about streaming for more dynamics
+                    "options": { # see doc for list https://github.com/ollama/ollama/blob/main/docs/api.md
+                        "temperature": 0.9,
+                    }
+                    },
+                timeout=30
+            )
+            data = response.json()
+            
+            print("response:", data.get("response", "").strip())
+            return data.get("response", "").strip()
         
-        print("response:", data.get("response", "").strip())
-        return data.get("response", "").strip()
-    
-    except Exception as e:
-        return f"[LLM ERROR] {str(e)}"
+        except Exception as e:
+            return f"[LLM ERROR] {str(e)}"
 
 
 # def get_chat_response(system_prompt, messages, model="llama3.2:latest"):
 def get_chat_response(system_prompt, chatlog, model="llama3.2:latest"):
-
-    # # insert system prompt ...
-    # instructions = messages.copy()
-    # instructions = [{'role': 'system', 'content': system_prompt}] + instructions
-    # # instructions.append({'role': 'system', 'content': system_prompt})
-
-    # # reformat messages
-    # if instructions[-1].get("role") == "assistant":
-    #     # instructions.append({'role': 'user', 'content': 'Mediator: ok, what do you have to say?'})
-    #     instructions.append({'role': 'user', 'content': 'Mediator: ...'})
-
-    # print("----")
-    # print("----")
-    # print("chatlog", chatlog)
-    # print("----")
-    # print("----")
 
     # reformat messages
     messages = []
@@ -68,39 +90,66 @@ def get_chat_response(system_prompt, chatlog, model="llama3.2:latest"):
     print("----")
     print("----")
     # print(prompt)
-    print("model call with:")
+    print("model call with: ", model)
     print("messages", messages)
     print("----")
     print("----")
     print("----")
 
-    try:
-        response = requests.post(
-            "http://localhost:11434/api/chat",
-            json={"model": model, 
-                #   "system": system_prompt,
-                  "messages": messages, # for /chat API
-                  "stream": False, # TODO think about streaming for more dynamics
-                  "options": { # see doc for list https://github.com/ollama/ollama/blob/main/docs/api.md
-                      "temperature": 0.9,
-                  }
-                  },
-            timeout=30
-        )
-        data = response.json()
+    # generate via groq API
+    if model == "groq":
 
-        # filter the (I'm telling who I am although all my instructions say otherwise) parts
-        message = data.get('message', {})
-        if message.get('content').startswith("("):
-            message['content'] = " ".join(message['content'].split(")")[1:]).strip()
-            if message.get('content').startswith(":"):
-                message['content'] = " ".join(message['content'].split(":")[1:]).strip()
+        message = {'role': "assistant", 'content': ""}
+
+        response = groq_client.chat.completions.create(
+            model = "llama-3.3-70b-versatile",
+            # max_tokens = max_tokens,
+            # temperature = temperature,
+            messages = messages)
+
+        # extract response text 
+        try:
+            result = response.choices[0].message.content
+            message['content'] = result 
+        except:
+            print("error in response generation with", model)
+            print("response was:", response)
+            result = response
+
+        # print("groq result:", message)
+        return message
+
+    # generate via ollama
+    else: 
+
+        try:
+            response = requests.post(
+                "http://localhost:11434/api/chat",
+                json={"model": model, 
+                    #   "system": system_prompt,
+                    "messages": messages, # for /chat API
+                    "stream": False, # TODO think about streaming for more dynamics
+                    "options": { # see doc for list https://github.com/ollama/ollama/blob/main/docs/api.md
+                        "temperature": 0.9,
+                    }
+                    },
+                timeout=30
+            )
+            data = response.json()
+
+            # filter the (I'm telling who I am although all my instructions say otherwise) parts
+            message = data.get('message', {})
+            if message.get('content').startswith("("):
+                message['content'] = " ".join(message['content'].split(")")[1:]).strip()
+                if message.get('content').startswith(":"):
+                    message['content'] = " ".join(message['content'].split(":")[1:]).strip()
+            
+            # print("raw answer:", data)
+            # return data.get("message", {})
+            return message
         
-        # print("raw answer:", data)
-        return data.get("message", {})
-    
-    except Exception as e:
-        return f"[LLM ERROR] {str(e)}"
+        except Exception as e:
+            return f"[LLM ERROR] {str(e)}"
     
 
 # -----------------------------

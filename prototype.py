@@ -6,8 +6,15 @@ import recon_util
 import recon_prompts
 
 # -----------------------------
-# Streamlit Setup
+# Setup
 # -----------------------------
+
+# general setup 
+
+model = "groq" # the model that will be used for this run 
+
+# streamlit setup
+
 st.set_page_config(page_title="The Night Before the Vote", layout="centered")
 st.title("The Night Before the Vote – Prototype")
 
@@ -24,6 +31,7 @@ st.markdown(recon_util.chat_css, unsafe_allow_html=True)
 # -----------------------------
 # CONFIG SCREEN
 # -----------------------------
+
 if st.session_state.state == "config":
     st.header("Step 1 — Build This World")
 
@@ -52,7 +60,7 @@ if st.session_state.state == "config":
 if st.session_state.state == "scene":
     st.header("The Exhibition Room")
 
-    st.write("You are in a dimly lit museum room. A case in the center ... two persons facing you ...")
+    st.write("(TODO: Scene description) You are in a dimly lit museum room. A case in the center ... two persons facing you ...")
 
     # TODO kickoff conversation with NPC turns?
     # or let player begin conversation
@@ -88,7 +96,7 @@ if st.session_state.state == "scene":
         take_turn = {"content": "yes"}
         if take_turn.get("content").lower().strip().replace(".", "").replace("!", "") == "yes":
             conversation_prompt = recon_prompts.build_conversation_prompt(st.session_state.chatlog)
-            npc_a_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog)
+            npc_a_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog, model=model)
             st.session_state.chatlog["speakers"][message_no] = role
             st.session_state.chatlog["messages"][message_no] = npc_a_out
             message_no += 1
@@ -104,7 +112,7 @@ if st.session_state.state == "scene":
         take_turn = {"content": "yes"}
         if take_turn.get("content").lower().strip().replace(".", "").replace("!", "") == "yes":
             conversation_prompt = recon_prompts.build_conversation_prompt(st.session_state.chatlog)
-            npc_b_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog)
+            npc_b_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog, model=model)
             st.session_state.chatlog["speakers"][message_no] = role
             st.session_state.chatlog["messages"][message_no] = npc_b_out
 
@@ -157,16 +165,16 @@ if st.session_state.state == "end":
         # let both NPCs give their final statement
         role = "Representative"
         role_system_prompt = recon_prompts.build_system_prompt(st.session_state.modules, role)
-        npc_a_decision = recon_util.get_llm_generation(role_system_prompt, vote_promt)
+        npc_a_decision = recon_util.get_llm_generation(role_system_prompt, vote_promt, model=model)
         recon_util.render_message(role, npc_a_decision)
         role = "Trustee"
         role_system_prompt = recon_prompts.build_system_prompt(st.session_state.modules, role)
-        npc_b_decision = recon_util.get_llm_generation(role_system_prompt, vote_promt)
+        npc_b_decision = recon_util.get_llm_generation(role_system_prompt, vote_promt, model=model)
         recon_util.render_message(role, npc_b_decision)
 
         # tell the ending 
-        ending_prompt = recon_prompts.build_ending_prompt(st.session_state.chatlog, npc_a_decision, npc_b_decision)
-        ending_message = recon_util.get_llm_generation(None, ending_prompt)
+        ending_system_prompt, ending_prompt = recon_prompts.build_ending_prompts(st.session_state.chatlog, npc_a_decision, npc_b_decision)
+        ending_message = recon_util.get_llm_generation(ending_system_prompt, ending_prompt, model=model)
         recon_util.render_message("DECISION", ending_message)
     
     st.markdown("")

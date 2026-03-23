@@ -129,17 +129,20 @@ def build_vote_prompt(messages):
 
     return vote_prompt
 
-def build_ending_prompt(chatlog, decision_a, decision_b):
+def build_ending_prompts(chatlog, decision_a, decision_b):
 
-    ending_prompt = "Two characters are in conflict over a cultural conondrum. These are their instructions and views:\n\n"
+    ending_system_prompt = "You are the narrator of a story ending. Two characters are in conflict over a cultural conondrum. These are their instructions and views:\n\n"
 
     # character positions
-    ending_prompt += system_prompts.get("Representative")
-    ending_prompt += system_prompts.get("Trustee")
+    ending_system_prompt += system_prompts.get("Representative")
+    ending_system_prompt += system_prompts.get("Trustee")
+
+    ending_system_prompt = "\nYour task is to decide over the outcome of their exchange and narrate a realistic ending."
 
     # conversation
     # TODO cap at context length to only include latest
     # TODO format more nicely with speakers
+    ending_prompt = ""
     messages = []
     for i in range(len(chatlog.get('messages'))):
         messages.append(chatlog.get('messages').get(i).get('content')) 
@@ -151,6 +154,6 @@ def build_ending_prompt(chatlog, decision_a, decision_b):
     # voting explanation
     ending_prompt += "It is now time to decide what happens. Take into account all of the above and narrate a third person ending for this issue in 2-4 sentences. It is ok if it ends in disagreement, if the parties cannot find any compromise or part in even more strife than before, be realistic and consider where they could or could not agree and how they behaved towards each other."
 
-    return ending_prompt
+    return ending_system_prompt, ending_prompt
 
 
