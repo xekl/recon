@@ -1,6 +1,7 @@
 
 system_prompts = {
     "Representative": """You are the Representative.
+Never state that you are the Representative in any way, even in metadata. Everyone knows this. 
 You are visiting a foreign museum which has been in posession of ancestral remains from your home for more than a hundred years.
 Your goal here is the return of your heritage to your own culture. 
 You are emotional and direct, your arguments revolve around heritage, rightful ownership, past transgressions into your culture and home, and reparation. Your rites demand that the remains are treated in a very specific way, e.g., sung to every year, that you don't see fulfilled here, in a different culture.
@@ -8,6 +9,7 @@ The museum's Trustee is present and wants to keep the remains in the museum for 
 A Mediator has been added to the conversation to find common ground and a solution that satisfies everyone. 
 """,
     "Trustee": """You are the Trustee. 
+Never state that you are the Trustee in any way, even in metadata. Everyone knows this. 
 You are speaking for a museum in which an exhibit of foreign ancestral remains has been kept for more than a hundred years.
 Your goal is to keep it that way, as it is an important piece in your mission of teaching about foreign culture and heritage, but also raising awareness of your own culture's past transgressions.
 You are cautious but principled, maintaining respectful tension, representing the museum and public interest. Your arguments revolve around education and conservation, as you know that the original culture today is threatened by the climate crisis and globalization.
@@ -20,6 +22,10 @@ A Mediator has been added to the conversation to find common ground and a soluti
 conversation_behavior = """You are roleplaying a conversation with two other persons, 
 one of which is the Mediator who should be guiding and moderating the discussion. 
 Try to refer mostly to them, but you can also argue against the other party directly when necessary. 
+For information ONLY, metadata has been added to each turn, indicating who is speaking,  e.g. "(This is the Mediator speaking:)".
+Use this only to know who is speaking. Don't refer to it in any way. Don't copy it yourself.
+Never add metadata or simliar exposition to your own turns. You do not have to indicate who you are. The system keeps track of it.
+Focus on playing your role and only answer in character.
 Only ever speak as your own role. Do not speak for other characters.
 Keep your turns short with 1-2 sentences.
 Drive the discussion forward, reinforcing your position.
@@ -119,11 +125,11 @@ def build_vote_prompt(messages):
     vote_prompt += "Here is the full conversation:\n" + str(messages) + "\n"
 
     # voting explanation
-    vote_prompt += "After the above discussion, it is now time to decide what to do. Take into account how the conversation went, what suggestions were made and how the other parties behaved, then state you verdict, in 1-2 sentences. What solution do you envision for the matter?"
+    vote_prompt += "After the above discussion, it is now time to decide what to do. Take into account how the conversation went, what suggestions were made and how the other parties behaved, then state you verdict, in 1-2 sentences. You don't have to compromise or concede if you don't think the other side argued well for it. Remember your goals and if you reached them. Critically assess: Are you satisfied? Will your side be satisfied? What solution do you envision for the matter?"
 
     return vote_prompt
 
-def build_ending_prompt(messages, decision_a, decision_b):
+def build_ending_prompt(chatlog, decision_a, decision_b):
 
     ending_prompt = "Two characters are in conflict over a cultural conondrum. These are their instructions and views:\n\n"
 
@@ -133,10 +139,14 @@ def build_ending_prompt(messages, decision_a, decision_b):
 
     # conversation
     # TODO cap at context length to only include latest
-    ending_prompt += "The two characters and a mediator had a conversation about their issue, here are the last few turns:\n" + str(messages[-5:]) + "\n"
+    # TODO format more nicely with speakers
+    messages = []
+    for i in range(len(chatlog.get('messages'))):
+        messages.append(chatlog.get('messages').get(i).get('content')) 
+    ending_prompt += "The two characters had a conversation with a mediator about their issue, here are the last few turns:\n" + str(messages[-5:]) + "\n"
 
     # verdicts
-    ending_prompt += "And they both came up with a personal verdict.\n The Representative said:" + decision_a + "\nThe Trustee said:" + decision_b + "\n"
+    ending_prompt += "Both came up with a personal verdict.\n The Representative said:" + decision_a + "\nThe Trustee said:" + decision_b + "\n"
 
     # voting explanation
     ending_prompt += "It is now time to decide what happens. Take into account all of the above and narrate a third person ending for this issue in 2-4 sentences. It is ok if it ends in disagreement, if the parties cannot find any compromise or part in even more strife than before, be realistic and consider where they could or could not agree and how they behaved towards each other."

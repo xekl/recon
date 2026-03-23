@@ -30,38 +30,56 @@ def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
         return f"[LLM ERROR] {str(e)}"
 
 
-def get_chat_response(system_prompt, messages, model="llama3.2:latest"):
+# def get_chat_response(system_prompt, messages, model="llama3.2:latest"):
+def get_chat_response(system_prompt, chatlog, model="llama3.2:latest"):
 
-    # insert system prompt ...
-    instructions = messages.copy()
-    instructions = [{'role': 'system', 'content': system_prompt}] + instructions
-    # instructions.append({'role': 'system', 'content': system_prompt})
+    # # insert system prompt ...
+    # instructions = messages.copy()
+    # instructions = [{'role': 'system', 'content': system_prompt}] + instructions
+    # # instructions.append({'role': 'system', 'content': system_prompt})
+
+    # # reformat messages
+    # if instructions[-1].get("role") == "assistant":
+    #     # instructions.append({'role': 'user', 'content': 'Mediator: ok, what do you have to say?'})
+    #     instructions.append({'role': 'user', 'content': 'Mediator: ...'})
+
+    # print("----")
+    # print("----")
+    # print("chatlog", chatlog)
+    # print("----")
+    # print("----")
 
     # reformat messages
-    if instructions[-1].get("role") == "assistant":
-        # instructions.append({'role': 'user', 'content': 'Mediator: ok, what do you have to say?'})
-        instructions.append({'role': 'user', 'content': 'Mediator: ...'})
+    messages = []
+    for i in range(len(chatlog.get("messages"))):
+        speaker = chatlog.get("speakers").get(i)
+        message = chatlog.get("messages").get(i).copy()
+        message['content'] = "(This is the " + speaker + " speaking): " + message['content']
+        messages.append(message)
+    # add system prompt
+    messages = [{'role': 'system', 'content': system_prompt}] + messages
+    # add empty user message to keep NPC B talking 
+    if messages[-1].get("role") == "assistant":
+        messages.append({'role': 'user', 'content': '(The Mediator waits for a reply.)'})
+
+    # TODO also keep context in view here 
 
     print("----")
     print("----")
     print("----")
     # print(prompt)
     print("model call with:")
-    # print("system_prompt", system_prompt)
-    print("instructions", instructions)
+    print("messages", messages)
     print("----")
     print("----")
     print("----")
-
-    
-
 
     try:
         response = requests.post(
             "http://localhost:11434/api/chat",
             json={"model": model, 
                 #   "system": system_prompt,
-                  "messages": instructions, # for /chat API
+                  "messages": messages, # for /chat API
                   "stream": False, # TODO think about streaming for more dynamics
                   "options": { # see doc for list https://github.com/ollama/ollama/blob/main/docs/api.md
                       "temperature": 0.9,
@@ -70,6 +88,13 @@ def get_chat_response(system_prompt, messages, model="llama3.2:latest"):
             timeout=30
         )
         data = response.json()
+
+        # filter the (I'm telling who I am although all my instructions say otherwise) parts
+        message = data.get('message', {})
+        if message.get('content').startswith("("):
+            message['content'] = " ".join(message['content'].split(")")[1:]).strip()
+            if message.get('content').startswith(":"):
+                message['content'] = " ".join(message['content'].split(":")[1:]).strip()
         
         # print("raw answer:", data)
         return data.get("message", {})
@@ -124,38 +149,16 @@ AVATARS = {
 } # TODO add suitable avatars, can be local images
 
 # def render_message(speaker, text):
-def render_message(message):
-
-    print()
-    print()
-    print()
-    print()
-    print()
-    print(message)
-    print()
-    print()
-    print()
-    print()
-    print()
+def render_message(speaker, message):
 
     if isinstance(message, str):
-        speaker = "placeholder"
+        # speaker = "placeholder"
         text = message
     else:
-        speaker = message.get("role", None)
+        # speaker = message.get("role", None)
         text = message.get("content", None)
 
-    # if speaker == "Mediator":
-    #     css_class = "chat-center"
-    # elif speaker == "Representative":
-    #     css_class = "chat-left"
-    # elif speaker == "Trustee":
-    #     css_class = "chat-right"
-    # else:
-    #     css_class = "chat-center"
-
-    if speaker == "user":
-        speaker = "Mediator"
+    if speaker == "Mediator":
         css_class = "chat-center"
     elif speaker == "Representative":
         css_class = "chat-left"
@@ -163,6 +166,16 @@ def render_message(message):
         css_class = "chat-right"
     else:
         css_class = "chat-center"
+
+    # if speaker == "user":
+    #     speaker = "Mediator"
+    #     css_class = "chat-center"
+    # elif speaker == "Representative":
+    #     css_class = "chat-left"
+    # elif speaker == "Trustee":
+    #     css_class = "chat-right"
+    # else:
+    #     css_class = "chat-center"
 
     with st.chat_message(speaker, avatar=AVATARS.get(speaker, None)):
         if speaker == "Mediator":

@@ -16,8 +16,8 @@ if "state" not in st.session_state:
     st.session_state.state = "config"
 if "modules" not in st.session_state:
     st.session_state.modules = {}
-if "messages" not in st.session_state:
-    st.session_state.messages = []   # list of (speaker, text)
+if "chatlog" not in st.session_state:
+    st.session_state.chatlog = {"speakers": {}, "messages": {}}
 
 st.markdown(recon_util.chat_css, unsafe_allow_html=True)
 
@@ -26,6 +26,11 @@ st.markdown(recon_util.chat_css, unsafe_allow_html=True)
 # -----------------------------
 if st.session_state.state == "config":
     st.header("Step 1 — Build This World")
+
+    # TODO explain what is going on here
+    # and that it is an LLM-based roleplaying game
+    # and how AI works 
+    # and what thought experiment this is meant to provoke
 
     st.write("Select which reconciliation modules exist:")
 
@@ -53,66 +58,70 @@ if st.session_state.state == "scene":
     # or let player begin conversation
 
     # Render existing messages
-    # for speaker, text in st.session_state.messages:
-    #     recon_util.render_message(speaker, text)
-    for message in st.session_state.messages:
-        recon_util.render_message(message)
+    # for message in st.session_state.chatlog:
+    for i in range(len(st.session_state.chatlog.get("messages"))):
+        speaker = st.session_state.chatlog.get("speakers").get(i)
+        message = st.session_state.chatlog.get("messages").get(i)
+        recon_util.render_message(speaker, message)
             
     # Chat input
     user_text = st.chat_input("Speak ...")
 
     if user_text:
 
+        message_no = len(st.session_state.chatlog.get("messages"))
+
         # 1 — Player message
-        # st.session_state.messages.append(("Mediator", user_text))
-        st.session_state.messages.append({'role': 'user', 'content': user_text})
+        # st.session_state.chatlog.append(("Mediator", user_text))
+        st.session_state.chatlog["speakers"][message_no] = "Mediator"
+        st.session_state.chatlog["messages"][message_no] = {'role': 'user', 'content': user_text}
+        message_no += 1
 
         # 2 — NPC A reaction
         role = "Representative"
         role_system_prompt = recon_prompts.build_system_prompt(st.session_state.modules, role)
-        # turn_taking_prompt = recon_prompts.build_turntaking_prompt(st.session_state.messages)
+        # turn_taking_prompt = recon_prompts.build_turntaking_prompt(st.session_state.chatlog)
         # # print("turn_taking_prompt for "+role, turn_taking_prompt)
-        # take_turn = recon_util.call_llm(role_system_prompt + "\n\n" + turn_taking_prompt, st.session_state.messages[-5:]) 
+        # take_turn = recon_util.call_llm(role_system_prompt + "\n\n" + turn_taking_prompt, st.session_state.chatlog[-5:]) 
         # print("take_turn for "+role, take_turn)
         # TODO forget turn taking for now 
         take_turn = {"content": "yes"}
         if take_turn.get("content").lower().strip().replace(".", "").replace("!", "") == "yes":
-            # npc_a_prompt = recon_prompts.build_system_prompt(st.session_state.modules, st.session_state.messages, role)
-            conversation_prompt = recon_prompts.build_conversation_prompt(st.session_state.messages)
-            # npc_a_out = recon_util.call_llm(role_system_prompt, conversation_prompt)
-            npc_a_out = recon_util.get_chat_response(role_system_prompt, st.session_state.messages)
-            # npc_a_out["role"] = role
-            # npc_a_out["content"] = role + ": " + npc_a_out["content"]
-            # st.session_state.messages.append((role, npc_a_out))
-            st.session_state.messages.append(npc_a_out)
+            conversation_prompt = recon_prompts.build_conversation_prompt(st.session_state.chatlog)
+            npc_a_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog)
+            st.session_state.chatlog["speakers"][message_no] = role
+            st.session_state.chatlog["messages"][message_no] = npc_a_out
+            message_no += 1
 
         # 3 — NPC B reaction
         role = "Trustee"
         role_system_prompt = recon_prompts.build_system_prompt(st.session_state.modules, role)
-        # turn_taking_prompt = recon_prompts.build_turntaking_prompt(st.session_state.messages)
+        # turn_taking_prompt = recon_prompts.build_turntaking_prompt(st.session_state.chatlog)
         # # print("turn_taking_prompt for "+role, turn_taking_prompt)
-        # take_turn = recon_util.call_llm(role_system_prompt + "\n\n" + turn_taking_prompt, st.session_state.messages[-5:]) 
+        # take_turn = recon_util.call_llm(role_system_prompt + "\n\n" + turn_taking_prompt, st.session_state.chatlog[-5:]) 
         # print("take_turn for "+role, take_turn)
         # TODO forget turn taking for now 
         take_turn = {"content": "yes"}
         if take_turn.get("content").lower().strip().replace(".", "").replace("!", "") == "yes":
-            # npc_a_prompt = recon_prompts.build_system_prompt(st.session_state.modules, st.session_state.messages, role)
-            conversation_prompt = recon_prompts.build_conversation_prompt(st.session_state.messages)
-            # npc_a_out = recon_util.call_llm(role_system_prompt, conversation_prompt)
-            npc_b_out = recon_util.get_chat_response(role_system_prompt, st.session_state.messages)
-            # npc_b_out["role"] = role
-            # npc_b_out["content"] = role + ": " + npc_b_out["content"]
-            # st.session_state.messages.append((role, npc_a_out))
-            st.session_state.messages.append(npc_b_out)
+            conversation_prompt = recon_prompts.build_conversation_prompt(st.session_state.chatlog)
+            npc_b_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog)
+            st.session_state.chatlog["speakers"][message_no] = role
+            st.session_state.chatlog["messages"][message_no] = npc_b_out
 
-        # take_turn_b = recon_prompts.build_turntaking_prompt(st.session_state.messages, "Trustee")
+            print("added Trustee message")
+            print(st.session_state.chatlog)
+            print(message_no)
+            print(role)
+            print(npc_b_out)
+
+        # take_turn_b = recon_prompts.build_turntaking_prompt(st.session_state.chatlog, "Trustee")
         # if recon_util.call_llm(take_turn_b).lower().strip().replace(".", "").replace("!", "") == "yes":
-        #     npc_b_prompt = recon_prompts.build_system_prompt(st.session_state.modules, st.session_state.messages, "Trustee")
+        #     npc_b_prompt = recon_prompts.build_system_prompt(st.session_state.modules, st.session_state.chatlog, "Trustee")
         #     npc_b_out = recon_util.call_llm(npc_b_prompt)
-        #     st.session_state.messages.append(("Trustee", npc_b_out))
+        #     st.session_state.chatlog.append(("Trustee", npc_b_out))
 
         # print("----")
-        # print("messages", st.session_state.messages)
+        # print("messages", st.session_state.chatlog)
         
         st.rerun()
 
@@ -137,28 +146,28 @@ if st.session_state.state == "end":
         st.markdown(f"- {k}: {'✓' if v else '✗'}")
 
     # st.subheader("Final Exchange")
-    # for speaker, text in st.session_state.messages[-6:]:
+    # for speaker, text in st.session_state.chatlog[-6:]:
     #     st.markdown(f"**{speaker}:** {text}")
 
     st.subheader("The Vote")
     st.markdown("...")
     if st.button("Decide!"):
-        vote_promt = recon_prompts.build_vote_prompt(st.session_state.messages)
+        vote_promt = recon_prompts.build_vote_prompt(st.session_state.chatlog)
 
         # let both NPCs give their final statement
         role = "Representative"
         role_system_prompt = recon_prompts.build_system_prompt(st.session_state.modules, role)
         npc_a_decision = recon_util.get_llm_generation(role_system_prompt, vote_promt)
-        recon_util.render_message(npc_a_decision)
+        recon_util.render_message(role, npc_a_decision)
         role = "Trustee"
         role_system_prompt = recon_prompts.build_system_prompt(st.session_state.modules, role)
         npc_b_decision = recon_util.get_llm_generation(role_system_prompt, vote_promt)
-        recon_util.render_message(npc_b_decision)
+        recon_util.render_message(role, npc_b_decision)
 
         # tell the ending 
-        ending_prompt = recon_prompts.build_ending_prompt(st.session_state.messages, npc_a_decision, npc_b_decision)
+        ending_prompt = recon_prompts.build_ending_prompt(st.session_state.chatlog, npc_a_decision, npc_b_decision)
         ending_message = recon_util.get_llm_generation(None, ending_prompt)
-        recon_util.render_message(ending_message)
+        recon_util.render_message("DECISION", ending_message)
     
     st.markdown("")
     st.markdown("")
