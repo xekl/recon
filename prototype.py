@@ -11,7 +11,9 @@ import recon_prompts
 
 # general setup 
 
-model = "groq" # the model that will be used for this run 
+# the model that will be used for this run 
+model = "groq" # use powerful online models
+model = "llama3.2:latest" # use local ollama models
 
 # streamlit setup
 
