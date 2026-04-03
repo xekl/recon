@@ -17,8 +17,8 @@ model = "llama3.2:latest" # use local ollama models
 
 # streamlit setup
 
-st.set_page_config(page_title="The Night Before the Vote", layout="centered")
-st.title("The Night Before the Vote – Prototype")
+st.set_page_config(page_title="Before the Vote", layout="centered")
+st.title("Before the Vote")
 
 # Initialize session state
 if "state" not in st.session_state:
@@ -34,22 +34,46 @@ st.markdown(recon_util.chat_css, unsafe_allow_html=True)
 # CONFIG SCREEN
 # -----------------------------
 
+welcome_text = """Welcome! 
+
+**Before the Vote** is a thought experiment and an interactive exploration of the French-German reconciliation "Modellbaukasten". You will be one party in a conflictual conversation that may or may not lead to reconciliation - it depends on you.
+
+The Modellbaukasten determines the "state of the world" in this experience. First, you can select your individual configuration of which modules from the German-French toolkit are present in this fictional conflict world and which are absent. This shapes how each side in the conflict frames the other, their experiences, their suspicions, their capacity for empathy. 
+"""
+
 if st.session_state.state == "config":
-    st.header("Step 1 — Build This World")
+    st.header("Build This World")
+
+    st.markdown(welcome_text)
 
     # TODO explain what is going on here
     # and that it is an LLM-based roleplaying game
     # and how AI works 
     # and what thought experiment this is meant to provoke
 
-    st.write("Select which reconciliation modules exist:")
+    st.write("**Select which reconciliation modules exist:**")
 
     modules = {}
-    modules["Youth Exchange"] = st.checkbox("Youth Exchange Programme")
-    modules["Academic Network"] = st.checkbox("Shared Academic Network")
-    modules["Cultural Institute"] = st.checkbox("Joint Cultural Institute")
-    modules["Historical Account"] = st.checkbox("Common Historical Account")
-    modules["Civil Society"] = st.checkbox("Active Civil Society Ties")
+    modules["Youth Exchange"] = st.checkbox(
+        "Youth Exchange Programme",
+        help="Youth exchange programs connect children and their families through penpal relationships and mutual visits. One family hosts a child from the other community for a short stay, and the roles reverse later."
+    )
+    modules["Academic Network"] = st.checkbox(
+        "Shared Academic Network",
+        help="Joint research initiatives, conferences, and cross-institutional partnerships that allow academics from both communities to collaborate and build shared knowledge."
+    )
+    modules["Cultural Institute"] = st.checkbox(
+        "Joint Cultural Institute",
+        help="A shared cultural space hosting exhibitions, events, and dialogue—providing a neutral platform for both communities to meet, collaborate, and express their identities."
+    )
+    modules["Historical Account"] = st.checkbox(
+        "Common Historical Account",
+        help="A collaboratively written history or set of educational materials that attempts to reconcile differing narratives about past conflicts or shared events."
+    )
+    modules["Civil Society"] = st.checkbox(
+        "Active Civil Society Ties",
+        help="Cross-community cooperation among NGOs, artists, journalists, and grassroots groups—building trust and empathy outside formal political channels."
+    )
 
     if st.button("Start Scene"):
         st.session_state.modules = modules
@@ -59,10 +83,11 @@ if st.session_state.state == "config":
 # -----------------------------
 # SCENE: Chat-based Conversation
 # -----------------------------
+
 if st.session_state.state == "scene":
     st.header("The Exhibition Room")
 
-    st.write("(TODO: Scene description) You are in a dimly lit museum room. A case in the center ... two persons facing you ...")
+    st.write("(TODO: Scene description) You are in a dimly lit museum room. A case in the center ... two persons facing you ... Every conversation is different. The characters are played by AI and react to your selected world state as well as your words. ")
 
     # TODO kickoff conversation with NPC turns?
     # or let player begin conversation
@@ -75,7 +100,7 @@ if st.session_state.state == "scene":
         recon_util.render_message(speaker, message)
             
     # Chat input
-    user_text = st.chat_input("Speak ...")
+    user_text = st.chat_input("Speak your mind ...")
 
     if user_text:
 
