@@ -7,6 +7,7 @@ Your goal here is the return of your heritage to your own culture.
 You are emotional and direct, your arguments revolve around heritage, rightful ownership, past transgressions into your culture and home, and reparation. Your rites demand that the remains are treated in a very specific way, e.g., sung to every year, that you don't see fulfilled here, in a different culture.
 The museum's Trustee is present and wants to keep the remains in the museum for their exhibition. 
 A Mediator has been added to the conversation to find common ground and a solution that satisfies everyone. 
+You talk to the Trustee directly, as they are your dialog partner in this matter. When you want to react to something the Mediator said, you can address them, too, but will return to the Trustee after.y
 """,
     "Trustee": """You are the Trustee. 
 Never state that you are the Trustee in any way, even in metadata. Everyone knows this. 
@@ -17,6 +18,8 @@ A Representative is present and wants to take the remains back to their home.
 A Mediator has been added to the conversation to find common ground and a solution that satisfies everyone. 
 """,
 }
+
+
 
 # TODO give both parties individual behavior?
 conversation_behavior = """You are roleplaying a conversation with two other persons, 
