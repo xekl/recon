@@ -1,4 +1,6 @@
 
+import recon_assets
+
 system_prompts = {
     "Representative": """You are the Representative.
 Never state that you are the Representative in any way, even in metadata. Everyone knows this. 

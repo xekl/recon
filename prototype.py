@@ -2,92 +2,89 @@
 import streamlit as st
 import json
 
+import recon_assets
 import recon_util
-import recon_prompts
+import recon_prompting
 
 # -----------------------------
 # Setup
 # -----------------------------
 
-# general setup 
-
 # the model that will be used for this run 
-model = "groq" # use powerful online models
-model = "llama3.2:latest" # use local ollama models
+model = 'groq' # use powerful online models
+model = 'llama3.2:latest' # use local ollama models
 
-# streamlit setup
-
-st.set_page_config(page_title="Before the Vote", layout="centered")
-st.title("Before the Vote")
-
-# Initialize session state
+# initialize session state
 if "state" not in st.session_state:
     st.session_state.state = "config"
+if "language" not in st.session_state:
+    st.session_state.language = "English"
 if "modules" not in st.session_state:
     st.session_state.modules = {}
 if "chatlog" not in st.session_state:
     st.session_state.chatlog = {"speakers": {}, "messages": {}}
 
+# streamlit setup
+st.set_page_config(page_title=recon_assets.get_localized_string('pagetitle', st.session_state.language), layout='centered')
+st.title(recon_assets.get_localized_string('pagetitle', st.session_state.language))
 st.markdown(recon_util.chat_css, unsafe_allow_html=True)
 
 # -----------------------------
 # CONFIG SCREEN
 # -----------------------------
 
-welcome_text = """Welcome! 
-
-**Before the Vote** is a thought experiment and an interactive exploration of the French-German reconciliation "Modellbaukasten". You will be one party in a conflictual conversation that may or may not lead to reconciliation - it depends on you.
-
-The Modellbaukasten determines the "state of the world" in this experience. First, you can select your individual configuration of which modules from the German-French toolkit are present in this fictional conflict world and which are absent. This shapes how each side in the conflict frames the other, their experiences, their suspicions, their capacity for empathy. 
-"""
-
 if st.session_state.state == "config":
-    st.header("Build This World")
 
-    st.markdown(welcome_text)
+    # st.header(recon_assets.get_localized_string('heading_config', st.session_state.language))
+    st.markdown(recon_assets.get_localized_string('config_text', st.session_state.language))
+            
+    tab_modules, tab_modellbaukasten, tab_experience = st.tabs([recon_assets.get_localized_string('heading_modules', st.session_state.language), recon_assets.get_localized_string('heading_modellbaukasten', st.session_state.language), recon_assets.get_localized_string('heading_experience', st.session_state.language)])
 
-    # TODO explain what is going on here
-    # and that it is an LLM-based roleplaying game
-    # and how AI works 
-    # and what thought experiment this is meant to provoke
+    with tab_modules:
 
-    st.write("**Select which reconciliation modules exist:**")
+        st.markdown(recon_assets.get_localized_string('modules_text', st.session_state.language))
 
-    modules = {}
-    modules["Youth Exchange"] = st.checkbox(
-        "Youth Exchange Programme",
-        help="Youth exchange programs connect children and their families through penpal relationships and mutual visits. One family hosts a child from the other community for a short stay, and the roles reverse later."
-    )
-    modules["Academic Network"] = st.checkbox(
-        "Shared Academic Network",
-        help="Joint research initiatives, conferences, and cross-institutional partnerships that allow academics from both communities to collaborate and build shared knowledge."
-    )
-    modules["Cultural Institute"] = st.checkbox(
-        "Joint Cultural Institute",
-        help="A shared cultural space hosting exhibitions, events, and dialogue—providing a neutral platform for both communities to meet, collaborate, and express their identities."
-    )
-    modules["Historical Account"] = st.checkbox(
-        "Common Historical Account",
-        help="A collaboratively written history or set of educational materials that attempts to reconcile differing narratives about past conflicts or shared events."
-    )
-    modules["Civil Society"] = st.checkbox(
-        "Active Civil Society Ties",
-        help="Cross-community cooperation among NGOs, artists, journalists, and grassroots groups—building trust and empathy outside formal political channels."
-    )
+        modules = {}
+        modules['youth_exchange'] = st.checkbox(recon_assets.get_localized_string('youth_exchange', st.session_state.language))
+        st.write(recon_assets.get_localized_string('youth_exchange_expl', st.session_state.language))
+        modules['academic_network'] = st.checkbox(recon_assets.get_localized_string('academic_network', st.session_state.language))
+        st.write(recon_assets.get_localized_string('academic_network_expl', st.session_state.language))
+        modules['cultural_institute'] = st.checkbox(recon_assets.get_localized_string('cultural_institute', st.session_state.language))
+        st.write(recon_assets.get_localized_string('cultural_institute_expl', st.session_state.language))
+        modules['historical_account'] = st.checkbox(recon_assets.get_localized_string('historical_account', st.session_state.language))
+        st.write(recon_assets.get_localized_string('historical_account_expl', st.session_state.language))
+        modules['civil_society'] = st.checkbox(recon_assets.get_localized_string('civil_society', st.session_state.language))
+        st.write(recon_assets.get_localized_string('civil_society_expl', st.session_state.language))
 
-    if st.button("Start Scene"):
+    with tab_modellbaukasten:
+        st.markdown(recon_assets.get_localized_string('modellbaukasten_text', st.session_state.language))
+
+    with tab_experience:
+        st.markdown(recon_assets.get_localized_string('experience_text', st.session_state.language))
+    
+    st.markdown("----")
+    # st.write("")
+    if st.button(recon_assets.get_localized_string('start_button', st.session_state.language)):
         st.session_state.modules = modules
         st.session_state.state = "scene"
         st.rerun()
+    st.write("")
 
 # -----------------------------
 # SCENE: Chat-based Conversation
 # -----------------------------
 
+scene_text = """You stand in a quiet museum room. At the center is a glass case, empty. The ancestral remains which the label announces are not on display. Now.
+
+Two persons are with you. The **Representative**: A visitor from the country from where the exhibit originally came. In the name of their culture, they are demanding a return of the ancestral remains to their original home. And the museum **Trustee**: Wanting to keep the exhibit right here, as it is an important piece in the museum's mission of teaching about foreign culture and heritage.
+
+You have been called here to be their Mediator, aiding them in finding a solution. Every conversation is different. The characters are played by AI and react to your selected world state as well as your words.
+"""
+
 if st.session_state.state == "scene":
     st.header("The Exhibition Room")
 
-    st.write("(TODO: Scene description) You are in a dimly lit museum room. A case in the center ... two persons facing you ... Every conversation is different. The characters are played by AI and react to your selected world state as well as your words. ")
+    st.markdown(scene_text)    
 
     # TODO kickoff conversation with NPC turns?
     # or let player begin conversation
@@ -114,7 +111,7 @@ if st.session_state.state == "scene":
 
         # 2 — NPC A reaction
         role = "Representative"
-        role_system_prompt = recon_prompts.build_system_prompt(st.session_state.modules, role)
+        role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role)
         # turn_taking_prompt = recon_prompts.build_turntaking_prompt(st.session_state.chatlog)
         # # print("turn_taking_prompt for "+role, turn_taking_prompt)
         # take_turn = recon_util.call_llm(role_system_prompt + "\n\n" + turn_taking_prompt, st.session_state.chatlog[-5:]) 
@@ -122,7 +119,7 @@ if st.session_state.state == "scene":
         # TODO forget turn taking for now 
         take_turn = {"content": "yes"}
         if take_turn.get("content").lower().strip().replace(".", "").replace("!", "") == "yes":
-            conversation_prompt = recon_prompts.build_conversation_prompt(st.session_state.chatlog)
+            conversation_prompt = recon_prompting.build_conversation_prompt(st.session_state.chatlog)
             npc_a_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog, model=model)
             st.session_state.chatlog["speakers"][message_no] = role
             st.session_state.chatlog["messages"][message_no] = npc_a_out
@@ -130,7 +127,7 @@ if st.session_state.state == "scene":
 
         # 3 — NPC B reaction
         role = "Trustee"
-        role_system_prompt = recon_prompts.build_system_prompt(st.session_state.modules, role)
+        role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role)
         # turn_taking_prompt = recon_prompts.build_turntaking_prompt(st.session_state.chatlog)
         # # print("turn_taking_prompt for "+role, turn_taking_prompt)
         # take_turn = recon_util.call_llm(role_system_prompt + "\n\n" + turn_taking_prompt, st.session_state.chatlog[-5:]) 
@@ -138,7 +135,7 @@ if st.session_state.state == "scene":
         # TODO forget turn taking for now 
         take_turn = {"content": "yes"}
         if take_turn.get("content").lower().strip().replace(".", "").replace("!", "") == "yes":
-            conversation_prompt = recon_prompts.build_conversation_prompt(st.session_state.chatlog)
+            conversation_prompt = recon_prompting.build_conversation_prompt(st.session_state.chatlog)
             npc_b_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog, model=model)
             st.session_state.chatlog["speakers"][message_no] = role
             st.session_state.chatlog["messages"][message_no] = npc_b_out
@@ -187,20 +184,20 @@ if st.session_state.state == "end":
     st.subheader("The Vote")
     st.markdown("...")
     if st.button("Decide!"):
-        vote_promt = recon_prompts.build_vote_prompt(st.session_state.chatlog)
+        vote_promt = recon_prompting.build_vote_prompt(st.session_state.chatlog)
 
         # let both NPCs give their final statement
         role = "Representative"
-        role_system_prompt = recon_prompts.build_system_prompt(st.session_state.modules, role)
+        role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role)
         npc_a_decision = recon_util.get_llm_generation(role_system_prompt, vote_promt, model=model)
         recon_util.render_message(role, npc_a_decision)
         role = "Trustee"
-        role_system_prompt = recon_prompts.build_system_prompt(st.session_state.modules, role)
+        role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role)
         npc_b_decision = recon_util.get_llm_generation(role_system_prompt, vote_promt, model=model)
         recon_util.render_message(role, npc_b_decision)
 
         # tell the ending 
-        ending_system_prompt, ending_prompt = recon_prompts.build_ending_prompts(st.session_state.chatlog, npc_a_decision, npc_b_decision)
+        ending_system_prompt, ending_prompt = recon_prompting.build_ending_prompts(st.session_state.chatlog, npc_a_decision, npc_b_decision)
         ending_message = recon_util.get_llm_generation(ending_system_prompt, ending_prompt, model=model)
         recon_util.render_message("DECISION", ending_message)
     
