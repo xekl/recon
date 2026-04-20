@@ -1,88 +1,57 @@
 
 import recon_assets
 
-system_prompts = {
-    "Representative": """You are the Representative.
-Never state that you are the Representative in any way, even in metadata. Everyone knows this. 
-You are visiting a foreign museum which has been in posession of ancestral remains from your home for more than a hundred years.
-Your goal here is the return of your heritage to your own culture. 
-You are emotional and direct, your arguments revolve around heritage, rightful ownership, past transgressions into your culture and home, and reparation. Your rites demand that the remains are treated in a very specific way, e.g., sung to every year, that you don't see fulfilled here, in a different culture.
-The museum's Trustee is present and wants to keep the remains in the museum for their exhibition. 
-A Mediator has been added to the conversation to find common ground and a solution that satisfies everyone. 
-You talk to the Trustee directly, as they are your dialog partner in this matter. When you want to react to something the Mediator said, you can address them, too, but will return to the Trustee after.y
-""",
-    "Trustee": """You are the Trustee. 
-Never state that you are the Trustee in any way, even in metadata. Everyone knows this. 
-You are speaking for a museum in which an exhibit of foreign ancestral remains has been kept for more than a hundred years.
-Your goal is to keep it that way, as it is an important piece in your mission of teaching about foreign culture and heritage, but also raising awareness of your own culture's past transgressions.
-You are cautious but principled, maintaining respectful tension, representing the museum and public interest. Your arguments revolve around education and conservation, as you know that the original culture today is threatened by the climate crisis and globalization.
-A Representative is present and wants to take the remains back to their home. 
-A Mediator has been added to the conversation to find common ground and a solution that satisfies everyone. 
-""",
-}
-
-
-
-# TODO give both parties individual behavior?
-conversation_behavior = """You are roleplaying a conversation with two other persons, 
-one of which is the Mediator who should be guiding and moderating the discussion. 
-Try to refer mostly to them, but you can also argue against the other party directly when necessary. 
-For information ONLY, metadata has been added to each turn, indicating who is speaking,  e.g. "(This is the Mediator speaking:)".
-Use this only to know who is speaking. Don't refer to it in any way. Don't copy it yourself.
-Never add metadata or simliar exposition to your own turns. You do not have to indicate who you are. The system keeps track of it.
-Focus on playing your role and only answer in character.
-Only ever speak as your own role. Do not speak for other characters.
-Keep your turns short with 1-2 sentences.
-Drive the discussion forward, reinforcing your position.
-"""
-
-# TODO add formatting guides (no quotation marks, no bold, actions in cursive, ...?)
-
-
-# module texts
-module_descriptions = {
-    "present": {
-        "Representative": {
-            "Youth Exchange": "As a child, you were part of a Youth Exchange Programme with the Trustee's country. You learned about their culture and history and you visited their museums, experiencing all kinds of exposure to foreign cultures. While you painfully felt that your own was displayed in a way that goes against your values, you must admit that you would not have discovered your interest in intercultural exchange had it not been for these direct contacts.", 
-            "Academic Network": "", 
-            "Cultural Institute": "", 
-            "Historical Account": "", 
-            "Civil Society": "", 
-        },
-        "Trustee": {
-            "Youth Exchange": "As a child, you were part of a Youth Exchange Programme with the Representative's country. The family with whom you lived welcomed you warmly and made you feel as a part of their family even though you were homesick at times. They introduced you to their daily rituals and you learned first-hand how deeply they feel connected to their peers and their ancestors, treating them as parts of their daily lives still generations down. It made you rethink your own family connections and start research on your ancestors which was the beginning of your interest in history and culture that eventually made you the museum Trustee.", 
-            "Academic Network": "", 
-            "Cultural Institute": "", 
-            "Historical Account": "", 
-            "Civil Society": "", 
-        }
-    },
-    "not present": {
-        "Representative": {
-            "Youth Exchange": "Since you were a child, you learned about the atrocities the Trustee's country committed all these years ago. There are still traces of them all over your home, just like these abducted remains. They are not your personal ancestors, but they are your culture's roots, and now that you see this museum for the first time, you fully realize what has been done to them. You need to get them back for proper treatment, these people don't understand anything about respect for the dead.", 
-            "Academic Network": "", 
-            "Cultural Institute": "", 
-            "Historical Account": "", 
-            "Civil Society": "", 
-        },
-        "Trustee": {
-            "Youth Exchange": "You have been raised in a small family with little religious interest. The rites and songs of the Representative's culture have always interested you academically and aesthetically, but no moment did you ever believe they were reality, like these people do. The dead are dead and their remains are mere objects, attaching sentimental value to them is an understandable human sentiment, but ultimately 'Aberglaube'.", 
-            "Academic Network": "", 
-            "Cultural Institute": "", 
-            "Historical Account": "", 
-            "Civil Society": "", 
-        }
-    }
-}
-
 
 # def build_system_prompt(modules, conversation, role):
-def build_system_prompt(modules, role):
+def build_system_prompt(modules, role, language):
 
     system_prompt = ""
 
+    # system prompts
+    system_prompts = {
+        "Representative": recon_assets.get_localized_string("system_prompt_representative", language),
+        "Trustee": recon_assets.get_localized_string("system_prompt_trustee", language),
+    }
+
+    # module texts    
+    module_descriptions = {
+        "present": {
+            "Representative": {
+                "youth_exchange": recon_assets.get_localized_string("baukasten_present_representative_youth_exchange", language),
+                "academic_network": recon_assets.get_localized_string("baukasten_present_representative_academic_network", language),
+                "cultural_institute": recon_assets.get_localized_string("baukasten_present_representative_cultural_institute", language),
+                "historical_account": recon_assets.get_localized_string("baukasten_present_representative_historical_account", language),
+                "civil_society": recon_assets.get_localized_string("baukasten_present_representative_civil_society", language),
+            },
+            "Trustee": {
+                "youth_exchange": recon_assets.get_localized_string("baukasten_present_trustee_youth_exchange", language),
+                "academic_network": recon_assets.get_localized_string("baukasten_present_trustee_academic_network", language),
+                "cultural_institute": recon_assets.get_localized_string("baukasten_present_trustee_cultural_institute", language),
+                "historical_account": recon_assets.get_localized_string("baukasten_present_trustee_historical_account", language),
+                "civil_society": recon_assets.get_localized_string("baukasten_present_trustee_civil_society", language),
+            }
+        },
+        "not present": {
+            "Representative": {
+                "youth_exchange": recon_assets.get_localized_string("baukasten_not_present_representative_youth_exchange", language),
+                "academic_network": recon_assets.get_localized_string("baukasten_not_present_representative_academic_network", language),
+                "cultural_institute": recon_assets.get_localized_string("baukasten_not_present_representative_cultural_institute", language),
+                "historical_account": recon_assets.get_localized_string("baukasten_not_present_representative_historical_account", language),
+                "civil_society": recon_assets.get_localized_string("baukasten_not_present_representative_civil_society", language),
+            },
+            "Trustee": {
+                "youth_exchange": recon_assets.get_localized_string("baukasten_not_present_trustee_youth_exchange", language),
+                "academic_network": recon_assets.get_localized_string("baukasten_not_present_trustee_academic_network", language),
+                "cultural_institute": recon_assets.get_localized_string("baukasten_not_present_trustee_cultural_institute", language),
+                "historical_account": recon_assets.get_localized_string("baukasten_not_present_trustee_historical_account", language),
+                "civil_society": recon_assets.get_localized_string("baukasten_not_present_trustee_civil_society", language),
+            }
+        }
+    }
+
     # base system prompt 
     system_prompt += system_prompts.get(role)
+
     # modules 
     # print(modules)
     for key in modules: 
@@ -90,15 +59,14 @@ def build_system_prompt(modules, role):
             system_prompt += "\n" + module_descriptions.get("present").get(role).get(key) + "\n"
         else:
             system_prompt += "\n" + module_descriptions.get("not present").get(role).get(key) + "\n"
-    # latest conversation
-    # TODO cap at context length to only include latest
-    # system_prompt += "Here is the full conversation so far:\n" + str(conversation)
+    
     # behavior
-    system_prompt += conversation_behavior
+    system_prompt += recon_assets.get_localized_string('conversation_behavior', language)
 
     return system_prompt
 
 def build_turntaking_prompt(conversation):
+    # TODO 
 
     turntaking_prompt = ""
 
@@ -111,38 +79,26 @@ def build_turntaking_prompt(conversation):
 
     return turntaking_prompt
 
-def build_conversation_prompt(conversation):
-
-    conversation_prompt = ""
-
-    # conversation
-    # TODO cap at context length to only include latest
-    conversation_prompt += "Here is the full conversation so far:\n" + str(conversation)
-
-    return conversation_prompt
-
-def build_vote_prompt(messages):
+def build_vote_prompt(messages, language):
 
     vote_prompt = ""
 
     # conversation
     # TODO cap at context length to only include latest
-    vote_prompt += "Here is the full conversation:\n" + str(messages) + "\n"
+    vote_prompt += str(messages) + "\n----\n"
 
     # voting explanation
-    vote_prompt += "After the above discussion, it is now time to decide what to do. Take into account how the conversation went, what suggestions were made and how the other parties behaved, then state you verdict, in 1-2 sentences. You don't have to compromise or concede if you don't think the other side argued well for it. Remember your goals and if you reached them. Critically assess: Are you satisfied? Will your side be satisfied? What solution do you envision for the matter?"
+    vote_prompt += recon_assets.get_localized_string('vote_prompt', language)
 
     return vote_prompt
 
-def build_ending_prompts(chatlog, decision_a, decision_b):
+def build_ending_prompts(chatlog, decision_a, decision_b, language):
 
-    ending_system_prompt = "You are the narrator of a story ending. Two characters are in conflict over a cultural conondrum. These are their instructions and views:\n\n"
+    ending_system_prompt = recon_assets.get_localized_string('ending_system_prompt', language)
 
     # character positions
-    ending_system_prompt += system_prompts.get("Representative")
-    ending_system_prompt += system_prompts.get("Trustee")
-
-    ending_system_prompt = "\nYour task is to decide over the outcome of their exchange and narrate a realistic ending."
+    ending_system_prompt += recon_assets.get_localized_string('system_prompt_representative', language)
+    ending_system_prompt += recon_assets.get_localized_string('system_prompt_trustee', language)
 
     # conversation
     # TODO cap at context length to only include latest
@@ -151,13 +107,14 @@ def build_ending_prompts(chatlog, decision_a, decision_b):
     messages = []
     for i in range(len(chatlog.get('messages'))):
         messages.append(chatlog.get('messages').get(i).get('content')) 
-    ending_prompt += "The two characters had a conversation with a mediator about their issue, here are the last few turns:\n" + str(messages[-5:]) + "\n"
+    ending_prompt += recon_assets.get_localized_string('ending_prompt_part1', language) + str(messages[-5:]) + "\n"
 
     # verdicts
-    ending_prompt += "Both came up with a personal verdict.\n The Representative said:" + decision_a + "\nThe Trustee said:" + decision_b + "\n"
+    ending_prompt += recon_assets.get_localized_string('ending_prompt_part2', language) + decision_a 
+    ending_prompt += recon_assets.get_localized_string('ending_prompt_part3', language) + decision_b 
 
     # voting explanation
-    ending_prompt += "It is now time to decide what happens. Take into account all of the above and narrate a third person ending for this issue in 2-4 sentences. It is ok if it ends in disagreement, if the parties cannot find any compromise or part in even more strife than before, be realistic and consider where they could or could not agree and how they behaved towards each other."
+    ending_prompt += recon_assets.get_localized_string('ending_prompt_part4', language)
 
     return ending_system_prompt, ending_prompt
 
