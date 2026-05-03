@@ -1,5 +1,8 @@
 
 import streamlit as st
+import streamlit.components.v1 as components
+
+from datetime import datetime
 
 import recon_assets
 import recon_util
@@ -10,23 +13,51 @@ import recon_prompting
 # -----------------------------
 
 # the model that will be used for this run 
-model = 'groq' # use powerful online models
+# model = 'groq' # use powerful online models
 model = 'llama3.2:latest' # use local ollama models
 
 # initialize session state
 if 'state' not in st.session_state:
     st.session_state.state = 'config'
+if 'chatlog' not in st.session_state:
+    st.session_state.chatlog = {'speakers': {}, 'messages': {}}
+
+# options 
 if 'language' not in st.session_state:
     st.session_state.language = 'English'
 if 'modules' not in st.session_state:
     st.session_state.modules = {}
-if 'chatlog' not in st.session_state:
-    st.session_state.chatlog = {'speakers': {}, 'messages': {}}
+
+# timer state 
+if 'timer_start' not in st.session_state:
+    st.session_state.timer_start = None
+if 'timer_duration' not in st.session_state:
+    st.session_state.timer_duration = 300  # 5 minutes in seconds
+if 'timer_expired' not in st.session_state:
+    st.session_state.timer_expired = False
+
+# timer helper function: how much time remains from the countdown?
+def get_remaining_time():
+    if st.session_state.timer_start is None:
+        return st.session_state.timer_duration
+    elapsed = (datetime.now() - st.session_state.timer_start).total_seconds()
+    remaining = max(0, st.session_state.timer_duration - elapsed)
+    return remaining
 
 # streamlit setup
 st.set_page_config(page_title=recon_assets.get_localized_string('pagetitle', st.session_state.language), layout='centered')
 st.title(recon_assets.get_localized_string('pagetitle', st.session_state.language))
 st.markdown(recon_util.chat_css, unsafe_allow_html=True)
+
+
+print()
+print()
+print()
+print("st.session_state.state:", st.session_state.state)
+print()
+print()
+print()
+
 
 # -----------------------------
 # CONFIG SCREEN
@@ -74,10 +105,19 @@ if st.session_state.state == 'config':
 # -----------------------------
 
 if st.session_state.state == 'scene':
-    st.header(recon_assets.get_localized_string('scene_header', st.session_state.language))
 
+    st.header(recon_assets.get_localized_string('scene_header', st.session_state.language))
     st.markdown(recon_assets.get_localized_string('scene_text', st.session_state.language))
-    #scene_text)    
+
+    # get timer time if timer has started
+    if st.session_state.timer_start is not None:
+        remaining = get_remaining_time()
+
+        # if time is up 
+        if remaining <= 0 and not st.session_state.timer_expired:
+            st.session_state.timer_expired = True
+            # TODO display a final message?
+            st.rerun()
 
     # TODO kickoff conversation with NPC turns?
     # or let player begin conversation
@@ -90,10 +130,21 @@ if st.session_state.state == 'scene':
         recon_util.render_message(speaker, message)
             
     # Chat input
-    user_text = st.chat_input(recon_assets.get_localized_string('chat_input', st.session_state.language))
+    if not st.session_state.timer_expired: # don't show if time is up 
+        user_text = st.chat_input(recon_assets.get_localized_string('chat_input', st.session_state.language))
+    else:
+        user_text = None
+        st.success(recon_assets.get_localized_string('time_is_up_text', st.session_state.language))
 
     if user_text:
 
+        # start the clock! on first message
+        if st.session_state.timer_start is None:
+            st.session_state.timer_start = datetime.now()
+        # check if time expired before processing
+        if get_remaining_time() <= 0:
+            st.rerun() # too late, trigger the end state transition
+            
         message_no = len(st.session_state.chatlog.get('messages'))
 
         # 1 — Player message
@@ -151,7 +202,46 @@ if st.session_state.state == 'scene':
         st.rerun()
 
     st.write("---")
-    if st.button(recon_assets.get_localized_string('end_scene_button', st.session_state.language)):
+
+    # ---- display timer ----
+
+    if st.session_state.timer_start is not None:
+        # JavaScript-based countdown timer
+        end_time_ms = int((st.session_state.timer_start.timestamp() + st.session_state.timer_duration) * 1000)
+        timer_html = f"""<div id="timer-display" style="text-align: center; font-size: 24px; font-weight: bold; padding: 10px; margin-bottom: 20px;">
+            <span id="timer-text"></span>
+        </div>
+        <script>
+        const endTime = {end_time_ms};
+        
+        function updateTimer() {{
+            const now = new Date().getTime();
+            const remaining = Math.max(0, endTime - now);
+            const minutes = Math.floor(remaining / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            
+            const timerText = document.getElementById('timer-text');
+            if (timerText) {{
+                const timeStr = minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+                
+                let color = 'green';
+                if (remaining < 60000) color = 'red';
+                else if (remaining < 120000) color = 'orange';
+                
+                timerText.innerHTML = '<span style="font-family: sans-serif;">Time Remaining: <span style="color: ' + color + '; font-family: sans-serif;">' + timeStr + '</span></span>';
+            }}
+        }}
+        
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
+        </script>"""
+        components.html(timer_html, height=80)
+
+    # ---- end timer section ----
+
+    # conclude scene manually with button 
+    _, _, _, col, _, _, _ = st.columns([1,2,3,4,3,2,1]) # hacky way to center button ...
+    if col.button(recon_assets.get_localized_string('end_scene_button', st.session_state.language)):
         st.session_state.state = 'end'
         st.rerun()
 

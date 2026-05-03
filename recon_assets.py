@@ -51,6 +51,7 @@ def get_localized_string(text, lang="English"):
         "end_header": {"English": "The End"},
         "decision_subheader": {"English": "The Decision"},
         "decision_text": {"English": "After a heated discussion, eventually, the parties conclude ..."},
+        "time_is_up_text": {"English": "The time for discussion is up. Please conclude the scene for the final decision."},
 
         # Modellbaukasten modules 
         "youth_exchange": {
@@ -208,10 +209,6 @@ def get_localized_string(text, lang="English"):
             "English": "\n\nIt is now time to decide what happens. Take into account all of the above and narrate a third person ending for this issue in 2-4 sentences. It is ok if it ends in disagreement, if the parties cannot find any compromise or part in even more strife than before, be realistic and consider where they could or could not agree and how they behaved towards each other.",
         },
 
-        
-
-        
-
-
     }
     return translations.get(text, {}).get(lang, text)
+
