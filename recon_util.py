@@ -1,6 +1,17 @@
-
 import requests
 import streamlit as st
+
+import logging
+logger = logging.getLogger("recon_logger")
+logger.setLevel(logging.DEBUG) # The default is NOTSET
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+# create formatter and add to console handler
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+# add ch to logger
+logger.addHandler(ch)
 
 from groq import Groq
 groq_client = Groq(api_key=st.secrets["GROQ_API_KEY"])
@@ -11,20 +22,14 @@ groq_client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
 
+    logger.debug("enter get_llm_generation, model: " + model)
+
     # generate via groq API
     if model == "groq":
 
         messages = []
         messages.append({'role': "system", 'content': system_prompt})
         messages.append({'role': "user", 'content': prompt})
-
-        print()
-        print()
-        print()
-        print("messages", messages)
-        print()
-        print()
-        print()
 
         response = groq_client.chat.completions.create(
             model = "llama-3.3-70b-versatile",
@@ -36,11 +41,11 @@ def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
         try:
             result = response.choices[0].message.content
         except:
-            print("error in response generation with", model)
-            print("response was:", response)
+            logger.error("error in response generation with", model)
+            logger.error("response was:", response)
             result = response
 
-        print("groq result:", result)
+        logger.debug("groq result:", result)
         return result
 
     # generate via ollama
@@ -61,7 +66,7 @@ def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
             )
             data = response.json()
             
-            print("response:", data.get("response", "").strip())
+            logger.debug("response: " + data.get("response", "").strip())
             return data.get("response", "").strip()
         
         except Exception as e:
@@ -70,6 +75,8 @@ def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
 
 # def get_chat_response(system_prompt, messages, model="llama3.2:latest"):
 def get_chat_response(system_prompt, chatlog, model="llama3.2:latest"):
+
+    logger.debug("enter get_chat_response, model: " + model)
 
     # reformat messages
     messages = []
@@ -85,16 +92,6 @@ def get_chat_response(system_prompt, chatlog, model="llama3.2:latest"):
         messages.append({'role': 'user', 'content': '(The Mediator waits for a reply.)'})
 
     # TODO also keep context in view here 
-
-    print("----")
-    print("----")
-    print("----")
-    # print(prompt)
-    print("model call with: ", model)
-    print("messages", messages)
-    print("----")
-    print("----")
-    print("----")
 
     # generate via groq API
     if model == "groq":
@@ -112,8 +109,8 @@ def get_chat_response(system_prompt, chatlog, model="llama3.2:latest"):
             result = response.choices[0].message.content
             message['content'] = result 
         except:
-            print("error in response generation with", model)
-            print("response was:", response)
+            logger.error("error in response generation with", model)
+            logger.error("response was:", response)
             result = response
 
         # print("groq result:", message)
