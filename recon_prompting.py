@@ -65,17 +65,26 @@ def build_system_prompt(modules, role, language):
 
     return system_prompt
 
-def build_turntaking_prompt(conversation):
-    # TODO 
+def build_turntaking_prompt(chatlog, language):
+    """
+    chatlog: a dict with keys 'speakers' and 'messages', both have a dict as value like:
+        'speakers': {0: 'Mediator', 1: 'Trustee'}, 
+        'messages': {0: {'role': 'user', 'content': 'hi'}, 1: {'role': 'assistant', 'content': ...
+    language: current language setting
+    """
 
     turntaking_prompt = ""
 
-    # system prompt 
-    # turntaking_prompt += system_prompts.get(role)
-    # latest conversation
-    # turntaking_prompt += "Here is the latest conversation:\n" + str(conversation[-5:])
-    # decision
-    turntaking_prompt += "Given your character description and the current conversation, do you want to take the next turn? Do NOT answer, yet, just take or reject the turn. Only take the turn if you have something important to contribute or need to gain control over the discussion. If you want to take the next turn, return only and exactly: YES. Any other or additional output and you will NOT be given the turn. You can write your actual answer later."
+    # build previous conversation
+    last_message_cap = 5 # cap at the latest k messages
+    message_indices = list(chatlog.get('speakers').keys())
+    for i in message_indices[-last_message_cap:]:
+        turntaking_prompt += chatlog.get('speakers').get(i) + ": "
+        turntaking_prompt += chatlog.get('messages').get(i).get('content') + "\n"
+    turntaking_prompt += "\n----\n"
+
+    # turn taking explanation
+    turntaking_prompt += recon_assets.get_localized_string('turn_taking_prompt', language)
 
     return turntaking_prompt
 

@@ -49,16 +49,6 @@ st.set_page_config(page_title=recon_assets.get_localized_string('pagetitle', st.
 st.title(recon_assets.get_localized_string('pagetitle', st.session_state.language))
 st.markdown(recon_util.chat_css, unsafe_allow_html=True)
 
-
-print()
-print()
-print()
-print("st.session_state.state:", st.session_state.state)
-print()
-print()
-print()
-
-
 # -----------------------------
 # CONFIG SCREEN
 # -----------------------------
@@ -158,47 +148,30 @@ if st.session_state.state == 'scene':
         # 2 — NPC A reaction
         role = 'Representative'
         role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
-        # turn_taking_prompt = recon_prompts.build_turntaking_prompt(st.session_state.chatlog)
-        # # print('turn_taking_prompt for '+role, turn_taking_prompt)
-        # take_turn = recon_util.call_llm(role_system_prompt + '\n\n' + turn_taking_prompt, st.session_state.chatlog[-5:]) 
-        # print('take_turn for '+role, take_turn)
-        # TODO forget turn taking for now 
-        take_turn = {'content': 'yes'}
-        if take_turn.get('content').lower().strip().replace('.', '').replace('!', '') == 'yes':
+        turn_taking_prompt = recon_prompting.build_turntaking_prompt(st.session_state.chatlog, st.session_state.language)
+        take_turn = recon_util.get_llm_generation(role_system_prompt, turn_taking_prompt, model=model)
+        if take_turn.lower().strip().replace('.', '').replace('!', '') == 'yes':
+            print("- Representative wants to take turn")
             npc_a_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog, model=model)
             st.session_state.chatlog['speakers'][message_no] = role
             st.session_state.chatlog['messages'][message_no] = npc_a_out
             message_no += 1
+        else:
+            print("- Representative does not want to take turn, says:", take_turn)
 
         # 3 — NPC B reaction
         role = 'Trustee'
         role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
-        # turn_taking_prompt = recon_prompts.build_turntaking_prompt(st.session_state.chatlog)
-        # # print('turn_taking_prompt for '+role, turn_taking_prompt)
-        # take_turn = recon_util.call_llm(role_system_prompt + '\n\n' + turn_taking_prompt, st.session_state.chatlog[-5:]) 
-        # print('take_turn for '+role, take_turn)
-        # TODO forget turn taking for now 
-        take_turn = {'content': 'yes'}
-        if take_turn.get('content').lower().strip().replace('.', '').replace('!', '') == 'yes':
+        turn_taking_prompt = recon_prompting.build_turntaking_prompt(st.session_state.chatlog, st.session_state.language)
+        take_turn = recon_util.get_llm_generation(role_system_prompt, turn_taking_prompt, model=model)
+        if take_turn.lower().strip().replace('.', '').replace('!', '') == 'yes':
+            print("- Trustees wants to take turn")
             npc_b_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog, model=model)
             st.session_state.chatlog['speakers'][message_no] = role
             st.session_state.chatlog['messages'][message_no] = npc_b_out
+        else:
+            print("- Representative does not want to take turn, says:", take_turn)
 
-            print('added Trustee message')
-            print(st.session_state.chatlog)
-            print(message_no)
-            print(role)
-            print(npc_b_out)
-
-        # take_turn_b = recon_prompts.build_turntaking_prompt(st.session_state.chatlog, "Trustee")
-        # if recon_util.call_llm(take_turn_b).lower().strip().replace(".", "").replace("!", "") == "yes":
-        #     npc_b_prompt = recon_prompts.build_system_prompt(st.session_state.modules, st.session_state.chatlog, "Trustee")
-        #     npc_b_out = recon_util.call_llm(npc_b_prompt)
-        #     st.session_state.chatlog.append(("Trustee", npc_b_out))
-
-        # print("----")
-        # print("messages", st.session_state.chatlog)
-        
         st.rerun()
 
     st.write("---")
