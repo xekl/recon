@@ -53,7 +53,6 @@ def build_system_prompt(modules, role, language):
     system_prompt += system_prompts.get(role)
 
     # modules 
-    # print(modules)
     for key in modules: 
         if modules.get(key) == True:
             system_prompt += "\n" + module_descriptions.get("present").get(role).get(key) + "\n"

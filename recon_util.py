@@ -2,8 +2,10 @@ import requests
 import streamlit as st
 
 import logging
-logger = logging.getLogger("recon_logger")
-logger.setLevel(logging.DEBUG) # The default is NOTSET
+logfile = "debug_log.txt"
+# PRINT LOGGER FOR SHORT PROGRESSION VIEW
+print_logger = logging.getLogger("recon_logger")
+print_logger.setLevel(logging.DEBUG) # The default is NOTSET
 # create console handler and set level to debug
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
@@ -11,7 +13,18 @@ ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 ch.setFormatter(formatter)
 # add ch to logger
-logger.addHandler(ch)
+print_logger.addHandler(ch)
+# FILE LOGGER FOR LONGER EXCERPTS
+file_logger = logging.getLogger('spam_application')
+file_logger.setLevel(logging.DEBUG)
+# create file handler 
+fh = logging.FileHandler(logfile)
+fh.setLevel(logging.DEBUG)
+# create formatter and add to file handler
+formatter = logging.Formatter('%(asctime)s - %(levelname)s \n\n%(message)s \n\n')
+fh.setFormatter(formatter)
+# add fh to logger
+file_logger.addHandler(fh)
 
 from groq import Groq
 groq_client = Groq(api_key=st.secrets["GROQ_API_KEY"])
@@ -22,7 +35,7 @@ groq_client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
 
-    logger.debug("enter get_llm_generation, model: " + model)
+    print_logger.debug("  enter get_llm_generation, model: " + model)
 
     # generate via groq API
     if model == "groq":
@@ -41,11 +54,13 @@ def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
         try:
             result = response.choices[0].message.content
         except:
-            logger.error("error in response generation with", model)
-            logger.error("response was:", response)
+            print_logger.error("error in response generation with", model)
+            print_logger.error("response was:", response)
             result = response
 
-        logger.debug("groq result:", result)
+        file_logger.debug("  get_llm_generation\n\n  with system-prompt:\n  " + system_prompt + "  \n\nwith prompt:\n  " + prompt + "  \n\nwith result:\n  " + result)
+        print_logger.debug("  response logged in file: " + logfile)
+
         return result
 
     # generate via ollama
@@ -66,7 +81,9 @@ def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
             )
             data = response.json()
             
-            logger.debug("response: " + data.get("response", "").strip())
+            file_logger.debug("  get_llm_generation\n\n  with system-prompt:\n  " + system_prompt + "  \n\nwith prompt:\n  " + prompt + "  \n\nwith result:\n  " + data.get("response", "").strip())
+            print_logger.debug("  response logged in file: " + logfile)
+
             return data.get("response", "").strip()
         
         except Exception as e:
@@ -76,7 +93,7 @@ def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
 # def get_chat_response(system_prompt, messages, model="llama3.2:latest"):
 def get_chat_response(system_prompt, chatlog, model="llama3.2:latest"):
 
-    logger.debug("enter get_chat_response, model: " + model)
+    print_logger.debug("  enter get_chat_response, model: " + model)
 
     # reformat messages
     messages = []
@@ -109,11 +126,13 @@ def get_chat_response(system_prompt, chatlog, model="llama3.2:latest"):
             result = response.choices[0].message.content
             message['content'] = result 
         except:
-            logger.error("error in response generation with", model)
-            logger.error("response was:", response)
+            print_logger.error("error in response generation with", model)
+            print_logger.error("response was:", response)
             result = response
 
-        # print("groq result:", message)
+        file_logger.debug("  get_chat_response\n\n  with system-prompt:\n  " + system_prompt + "  \n\nwith latest messages:\n  " + str(messages[-3:]) + "  \n\nwith result:\n  " + str(message))
+        print_logger.debug("  response logged in file: " + logfile)
+
         return message
 
     # generate via ollama
@@ -134,20 +153,21 @@ def get_chat_response(system_prompt, chatlog, model="llama3.2:latest"):
             )
             data = response.json()
 
-            # filter the (I'm telling who I am although all my instructions say otherwise) parts
-            message = data.get('message', {})
-            if message.get('content').startswith("("):
-                message['content'] = " ".join(message['content'].split(")")[1:]).strip()
-                if message.get('content').startswith(":"):
-                    message['content'] = " ".join(message['content'].split(":")[1:]).strip()
-            
-            # print("raw answer:", data)
-            # return data.get("message", {})
-            return message
-        
         except Exception as e:
-            return f"[LLM ERROR] {str(e)}"
-    
+            print_logger.error("LLM ERROR: " + {str(e)})
+            return "..."
+
+        # filter the (I'm telling who I am although all my instructions say otherwise) parts
+        message = data.get('message', {})
+        if message.get('content').startswith("("):
+            message['content'] = " ".join(message['content'].split(")")[1:]).strip()
+            if message.get('content').startswith(":"):
+                message['content'] = " ".join(message['content'].split(":")[1:]).strip()
+        
+        file_logger.debug("  get_chat_response\n\n  with system-prompt:\n  " + system_prompt + "  \n\nwith latest messages:\n  " + str(messages[-3:]) + "  \n\nwith raw answer:\n  " + str(data) + "  \n\nwith result:\n  " + str(message))
+        print_logger.debug("  response logged in file: " + logfile)
+
+        return message
 
 # -----------------------------
 # Utility: Chat layout
@@ -228,4 +248,3 @@ def render_message(speaker, message):
             st.markdown(f"<div class='{css_class}'>{text}</div>", unsafe_allow_html=True)
         else: 
             st.markdown(f"<div class='{css_class}'><b>{speaker}:</b> {text}</div>", unsafe_allow_html=True)
-

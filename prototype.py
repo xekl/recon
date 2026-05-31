@@ -143,7 +143,7 @@ if st.session_state.state == 'scene':
         st.session_state.chatlog['messages'][message_no] = {'role': 'user', 'content': user_text}
         message_no += 1
 
-        # TODO add localization to prompt building
+        recon_util.print_logger.debug("got user input, handle turn taking:")
 
         # 2 — NPC A reaction
         role = 'Representative'
@@ -151,13 +151,13 @@ if st.session_state.state == 'scene':
         turn_taking_prompt = recon_prompting.build_turntaking_prompt(st.session_state.chatlog, st.session_state.language)
         take_turn = recon_util.get_llm_generation(role_system_prompt, turn_taking_prompt, model=model)
         if take_turn.lower().strip().replace('.', '').replace('!', '') == 'yes':
-            recon_util.logger.debug("Representative wants to take turn")
+            # recon_util.print_logger.debug("Representative wants to take turn")
             npc_a_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog, model=model)
             st.session_state.chatlog['speakers'][message_no] = role
             st.session_state.chatlog['messages'][message_no] = npc_a_out
             message_no += 1
         else:
-            recon_util.logger.debug("Representative does not want to take turn, says:", take_turn)
+            recon_util.print_logger.debug("Representative does not want to take turn, says:", take_turn)
 
         # 3 — NPC B reaction
         role = 'Trustee'
@@ -165,12 +165,12 @@ if st.session_state.state == 'scene':
         turn_taking_prompt = recon_prompting.build_turntaking_prompt(st.session_state.chatlog, st.session_state.language)
         take_turn = recon_util.get_llm_generation(role_system_prompt, turn_taking_prompt, model=model)
         if take_turn.lower().strip().replace('.', '').replace('!', '') == 'yes':
-            recon_util.logger.debug("Trustees wants to take turn")
+            # recon_util.print_logger.debug("Trustee wants to take turn")
             npc_b_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog, model=model)
             st.session_state.chatlog['speakers'][message_no] = role
             st.session_state.chatlog['messages'][message_no] = npc_b_out
         else:
-            recon_util.logger.debug("Representative does not want to take turn, says:", take_turn)
+            recon_util.print_logger.debug("Trustee does not want to take turn, says:", take_turn)
 
         st.rerun()
 
@@ -222,13 +222,8 @@ if st.session_state.state == 'scene':
 # ENDING SCENE
 # -----------------------------
 if st.session_state.state == 'end':
+    
     st.header(recon_assets.get_localized_string('end_header', st.session_state.language))
-
-    # TODO actually have them vote 
-    # and tell the ending of the story by their reached agreement
-
-    # TODO have a timer running and reach this state automatically after n minutes?
-
     st.subheader(recon_assets.get_localized_string('heading_modules', st.session_state.language))
     
     module_markdown = ""
@@ -236,15 +231,15 @@ if st.session_state.state == 'end':
         module_markdown += f"- {'✓' if v else '✗'} - {recon_assets.get_localized_string(k, st.session_state.language)}\n"
     st.markdown(module_markdown)
     
-    # st.subheader("Final Exchange")
-    # for speaker, text in st.session_state.chatlog[-6:]:
-    #     st.markdown(f"**{speaker}:** {text}")
-
     st.subheader(recon_assets.get_localized_string('decision_subheader', st.session_state.language))
     st.markdown(recon_assets.get_localized_string('decision_text', st.session_state.language))
     
-    if st.button("Decide! (will trigger automatically later)"):
-        # TODO trigger automatically
+    if st.button("Decide!"):
+        
+        # TODO trigger automatically?
+
+        recon_util.print_logger.debug("concluding scene with decision ...")
+
         vote_prompt = recon_prompting.build_vote_prompt(st.session_state.chatlog, st.session_state.language)
 
         # let both NPCs give their final statement
@@ -269,6 +264,4 @@ if st.session_state.state == 'end':
         for k in list(st.session_state.keys()):
             del st.session_state[k]
         st.rerun()
-
-
 

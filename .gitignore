@@ -209,3 +209,4 @@ __marimo__/
 # own
 .streamlit/secrets.toml
 notes.txt
+debug_log.txt
