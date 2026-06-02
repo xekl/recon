@@ -32,7 +32,7 @@ if 'modules' not in st.session_state:
 if 'timer_start' not in st.session_state:
     st.session_state.timer_start = None
 if 'timer_duration' not in st.session_state:
-    st.session_state.timer_duration = 300  # 5 minutes in seconds
+    st.session_state.timer_duration = 420  # 7 minutes in seconds
 if 'timer_expired' not in st.session_state:
     st.session_state.timer_expired = False
 
@@ -148,11 +148,11 @@ if st.session_state.state == 'scene':
         # 2 — NPC A reaction
         role = 'Representative'
         role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
-        turn_taking_prompt = recon_prompting.build_turntaking_prompt(st.session_state.chatlog, st.session_state.language)
+        turn_taking_prompt = recon_prompting.build_turntaking_prompt(st.session_state.chatlog, role, st.session_state.language)
         take_turn = recon_util.get_llm_generation(role_system_prompt, turn_taking_prompt, model=model)
         if take_turn.lower().strip().replace('.', '').replace('!', '') == 'yes':
             # recon_util.print_logger.debug("Representative wants to take turn")
-            npc_a_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog, model=model)
+            npc_a_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog, role, model=model)
             st.session_state.chatlog['speakers'][message_no] = role
             st.session_state.chatlog['messages'][message_no] = npc_a_out
             message_no += 1
@@ -162,11 +162,11 @@ if st.session_state.state == 'scene':
         # 3 — NPC B reaction
         role = 'Trustee'
         role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
-        turn_taking_prompt = recon_prompting.build_turntaking_prompt(st.session_state.chatlog, st.session_state.language)
+        turn_taking_prompt = recon_prompting.build_turntaking_prompt(st.session_state.chatlog, role, st.session_state.language)
         take_turn = recon_util.get_llm_generation(role_system_prompt, turn_taking_prompt, model=model)
         if take_turn.lower().strip().replace('.', '').replace('!', '') == 'yes':
             # recon_util.print_logger.debug("Trustee wants to take turn")
-            npc_b_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog, model=model)
+            npc_b_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog, role, model=model)
             st.session_state.chatlog['speakers'][message_no] = role
             st.session_state.chatlog['messages'][message_no] = npc_b_out
         else:

@@ -64,26 +64,44 @@ def build_system_prompt(modules, role, language):
 
     return system_prompt
 
-def build_turntaking_prompt(chatlog, language):
+def build_turntaking_prompt(chatlog, role, language):
     """
-    chatlog: a dict with keys 'speakers' and 'messages', both have a dict as value like:
+    Build a deterministic turn-taking prompt asking whether `role` should speak next.
+
+    Parameters:
+    - chatlog: dict with keys 'speakers' and 'messages' as in prototype, both have a dict as value like:
         'speakers': {0: 'Mediator', 1: 'Trustee'}, 
         'messages': {0: {'role': 'user', 'content': 'hi'}, 1: {'role': 'assistant', 'content': ...
-    language: current language setting
+    - role: the role being queried (e.g. 'Representative' or 'Trustee')
+    - language: current language setting
     """
 
     turntaking_prompt = ""
 
-    # build previous conversation
-    last_message_cap = 5 # cap at the latest k messages
+    # build previous conversation (cap to recent turns)
+    last_message_cap = 8
     message_indices = list(chatlog.get('speakers').keys())
-    for i in message_indices[-last_message_cap:]:
-        turntaking_prompt += chatlog.get('speakers').get(i) + ": "
-        turntaking_prompt += chatlog.get('messages').get(i).get('content') + "\n"
+    recent_indices = message_indices[-last_message_cap:]
+    for i in recent_indices:
+        speaker = chatlog.get('speakers').get(i)
+        content = chatlog.get('messages').get(i).get('content')
+        turntaking_prompt += f"{speaker}: {content}\n"
     turntaking_prompt += "\n----\n"
 
-    # turn taking explanation
-    turntaking_prompt += recon_assets.get_localized_string('turn_taking_prompt', language)
+    # identify last speaker
+    last_speaker = None
+    if len(message_indices) > 0:
+        last_idx = message_indices[-1]
+        last_speaker = chatlog.get('speakers').get(last_idx)
+
+    # explicit, deterministic instruction
+    turntaking_prompt += f"Last speaker: {last_speaker if last_speaker is not None else 'None'}\n"
+    turntaking_prompt += f"You are evaluating whether the role '{role}' should speak next.\n"
+    turntaking_prompt += "Based on the recent conversation above, answer ONLY with 'YES' or 'NO'.\n"
+    turntaking_prompt += "Do NOT provide any additional text or explanation.\n"
+
+    # append any localized guidance for turn taking (keeps legacy text if useful)
+    turntaking_prompt += "\n" + recon_assets.get_localized_string('turn_taking_prompt', language)
 
     return turntaking_prompt
 

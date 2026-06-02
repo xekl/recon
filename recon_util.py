@@ -91,24 +91,36 @@ def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
 
 
 # def get_chat_response(system_prompt, messages, model="llama3.2:latest"):
-def get_chat_response(system_prompt, chatlog, model="llama3.2:latest"):
+def get_chat_response(system_prompt, chatlog, role, model="llama3.2:latest"):
 
-    print_logger.debug("  enter get_chat_response, model: " + model)
+    print_logger.debug("  enter get_chat_response, model: " + model + ", role: " + str(role))
 
-    # reformat messages
-    messages = []
+    # Reformat conversation into a labeled transcript (no API 'name' support assumed)
+    transcript_lines = []
     for i in range(len(chatlog.get("messages"))):
         speaker = chatlog.get("speakers").get(i)
-        message = chatlog.get("messages").get(i).copy()
-        message['content'] = "(This is the " + speaker + " speaking): " + message['content']
-        messages.append(message)
-    # add system prompt
-    messages = [{'role': 'system', 'content': system_prompt}] + messages
-    # add empty user message to keep NPC B talking 
-    if messages[-1].get("role") == "assistant":
-        messages.append({'role': 'user', 'content': '(The Mediator waits for a reply.)'})
+        content = chatlog.get("messages").get(i).get('content')
+        transcript_lines.append(f"{speaker}: {content}")
+    # cap transcript to recent N lines
+    last_k = 12
+    transcript = "\n".join(transcript_lines[-last_k:])
 
-    # TODO also keep context in view here 
+    # determine last speaker
+    last_speaker = None
+    if len(transcript_lines) > 0:
+        last_speaker = transcript_lines[-1].split(":", 1)[0]
+
+    # user-style prompt including explicit instruction who should respond next
+    user_prompt = "Conversation history:\n" + transcript + "\n\n"
+    user_prompt += f"Last speaker: {last_speaker if last_speaker is not None else 'None'}\n"
+    user_prompt += f"Now respond AS {role}. Address the last speaker directly.\n"
+    user_prompt += "Output ONLY the next reply text (do NOT prepend the speaker name).\n"
+
+    # prepare messages for the chat API
+    messages = [
+        {'role': 'system', 'content': system_prompt},
+        {'role': 'user', 'content': user_prompt}
+    ]
 
     # generate via groq API
     if model == "groq":
@@ -117,54 +129,51 @@ def get_chat_response(system_prompt, chatlog, model="llama3.2:latest"):
 
         response = groq_client.chat.completions.create(
             model = "llama-3.3-70b-versatile",
-            # max_tokens = max_tokens,
-            # temperature = temperature,
             messages = messages)
 
         # extract response text 
         try:
             result = response.choices[0].message.content
             message['content'] = result 
-        except:
-            print_logger.error("error in response generation with", model)
+        except Exception as e:
+            print_logger.error("error in response generation with " + model + ": " + str(e))
             print_logger.error("response was:", response)
-            result = response
+            message['content'] = str(response)
 
-        file_logger.debug("  get_chat_response\n\n  with system-prompt:\n  " + system_prompt + "  \n\nwith latest messages:\n  " + str(messages[-3:]) + "  \n\nwith result:\n  " + str(message))
+        file_logger.debug("  get_chat_response\n\n  with system-prompt:\n  " + system_prompt + "  \n\nwith user-prompt:\n  " + user_prompt + "  \n\nwith result:\n  " + str(message))
         print_logger.debug("  response logged in file: " + logfile)
 
         return message
 
     # generate via ollama
     else: 
-
         try:
             response = requests.post(
-                "http://localhost:11434/api/chat",
-                json={"model": model, 
-                    #   "system": system_prompt,
-                    "messages": messages, # for /chat API
-                    "stream": False, # TODO think about streaming for more dynamics
-                    "options": { # see doc for list https://github.com/ollama/ollama/blob/main/docs/api.md
-                        "temperature": 0.9,
-                    }
-                    },
+                "http://localhost:11434/api/generate",
+                json={
+                    "model": model,
+                    "system": system_prompt,
+                    "prompt": user_prompt,
+                    "stream": False,
+                    "options": {"temperature": 0.9}
+                },
                 timeout=30
             )
             data = response.json()
-
         except Exception as e:
-            print_logger.error("LLM ERROR: " + {str(e)})
-            return "..."
+            print_logger.error("LLM ERROR: " + str(e))
+            return {'role': 'assistant', 'content': '...'}
 
-        # filter the (I'm telling who I am although all my instructions say otherwise) parts
-        message = data.get('message', {})
-        if message.get('content').startswith("("):
-            message['content'] = " ".join(message['content'].split(")")[1:]).strip()
-            if message.get('content').startswith(":"):
-                message['content'] = " ".join(message['content'].split(":")[1:]).strip()
-        
-        file_logger.debug("  get_chat_response\n\n  with system-prompt:\n  " + system_prompt + "  \n\nwith latest messages:\n  " + str(messages[-3:]) + "  \n\nwith raw answer:\n  " + str(data) + "  \n\nwith result:\n  " + str(message))
+        # try to extract response text from known keys
+        result = data.get('response') or data.get('message') or data.get('result') or ''
+        if isinstance(result, dict):
+            result_text = result.get('content', '')
+        else:
+            result_text = str(result)
+
+        message = {'role': 'assistant', 'content': result_text}
+
+        file_logger.debug("  get_chat_response\n\n  with system-prompt:\n  " + system_prompt + "  \n\nwith user-prompt:\n  " + user_prompt + "  \n\nwith raw answer:\n  " + str(data) + "  \n\nwith result:\n  " + str(message))
         print_logger.debug("  response logged in file: " + logfile)
 
         return message
