@@ -13,8 +13,9 @@ import recon_prompting
 # -----------------------------
 
 # the model that will be used for this run 
-model = 'groq' # use powerful online models
-# model = 'llama3.2:latest' # use local ollama models
+# model = 'groq' # use powerful online models
+model = 'llama3.2:latest' # use local ollama models
+model = 'gemma4:latest' # use local ollama models
 
 # initialize session state
 if 'state' not in st.session_state:
