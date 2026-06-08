@@ -79,7 +79,7 @@ def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
                         "temperature": 0.9,
                     }
                     },
-                timeout=30
+                timeout=(10, 300) # 10s to connect, 5 minutes to read -> don't run into timeout errors too early
             )
             data = response.json()
             
