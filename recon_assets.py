@@ -45,7 +45,7 @@ scene_text_en = """You stand in a quiet museum room. At the center is a glass ca
 
 Two persons are with you. The **Representative**: A visitor from the country from where the exhibit originally came. In the name of their culture, they are demanding a return of the ancestral remains to their original home. And the museum **Trustee**: Wanting to keep the exhibit right here, as it is an important piece in the museum's mission of teaching about foreign culture and heritage.
 
-You have been called here to be their Mediator, aiding them in finding a solution. Every conversation is different. The characters are played by AI and react to your selected world state as well as your words.
+**You have been called here to be their Mediator**, aiding them in finding a solution. Every conversation is different. The characters are played by AI and react to your selected world state as well as your words.
 """
 
 decision_text_en = """TODO"""

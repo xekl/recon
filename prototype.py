@@ -36,6 +36,10 @@ if 'timer_duration' not in st.session_state:
     st.session_state.timer_duration = 420  # 7 minutes in seconds
 if 'timer_expired' not in st.session_state:
     st.session_state.timer_expired = False
+if 'timer_paused' not in st.session_state:
+    st.session_state.timer_paused = False
+if 'timer_pause_time' not in st.session_state:
+    st.session_state.timer_pause_time = None  # Tracks when pause started
 
 # timer helper function: how much time remains from the countdown?
 def get_remaining_time():
@@ -44,6 +48,22 @@ def get_remaining_time():
     elapsed = (datetime.now() - st.session_state.timer_start).total_seconds()
     remaining = max(0, st.session_state.timer_duration - elapsed)
     return remaining
+
+# pause timer during LLM calls
+def pause_timer():
+    """Pause the timer by recording the current moment."""
+    st.session_state.timer_paused = True
+    if st.session_state.timer_start is not None and st.session_state.timer_pause_time is None:
+        st.session_state.timer_pause_time = datetime.now()
+
+# resume timer after LLM calls
+def resume_timer():
+    """Resume the timer by shifting timer_start forward by pause duration."""
+    if st.session_state.timer_pause_time is not None:
+        pause_duration = (datetime.now() - st.session_state.timer_pause_time).total_seconds()
+        st.session_state.timer_start = st.session_state.timer_start + __import__('datetime').timedelta(seconds=pause_duration)
+        st.session_state.timer_pause_time = None
+    st.session_state.timer_paused = False
 
 # streamlit setup
 st.set_page_config(page_title=recon_assets.get_localized_string('pagetitle', st.session_state.language), layout='centered')
@@ -146,6 +166,8 @@ if st.session_state.state == 'scene':
 
         recon_util.print_logger.debug("got user input, handle turn taking:")
 
+        pause_timer()
+
         # 2 — NPC A reaction
         role = 'Representative'
         role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
@@ -172,14 +194,17 @@ if st.session_state.state == 'scene':
             st.session_state.chatlog['messages'][message_no] = npc_b_out
         else:
             recon_util.print_logger.debug("Trustee does not want to take turn, says:", take_turn)
+        
+        resume_timer()
 
         st.rerun()
 
     st.write("---")
 
     # ---- display timer ----
+    # TODO pausing timer works but is not displayed correctly, the JavaScript timer keeps counting down during the pause.
 
-    if st.session_state.timer_start is not None:
+    if st.session_state.timer_start is not None and st.session_state.timer_paused == False:
         # JavaScript-based countdown timer
         end_time_ms = int((st.session_state.timer_start.timestamp() + st.session_state.timer_duration) * 1000)
         timer_html = f"""<div id="timer-display" style="text-align: center; font-size: 24px; font-weight: bold; padding: 10px; margin-bottom: 20px;">
@@ -215,9 +240,10 @@ if st.session_state.state == 'scene':
 
     # conclude scene manually with button 
     _, _, _, col, _, _, _ = st.columns([1,2,3,4,3,2,1]) # hacky way to center button ...
-    if col.button(recon_assets.get_localized_string('end_scene_button', st.session_state.language)):
-        st.session_state.state = 'end'
-        st.rerun()
+    if len(st.session_state.chatlog.get('speakers')) > 0: # only show end scene button after at least one message has been sent
+        if col.button(recon_assets.get_localized_string('end_scene_button', st.session_state.language)):
+            st.session_state.state = 'end'
+            st.rerun()
 
 # -----------------------------
 # ENDING SCENE
