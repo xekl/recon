@@ -1,4 +1,6 @@
 
+# configuration page text s
+
 config_text_en = """Welcome! 
 
 **Before the Vote** is a thought experiment wrapped in a short, text-based interactive narrative experience powered by a large language model (LLM). It is designed as a live demonstrator for the *Colloque international* "Penser et pratiquer la réconciliation – Zu Fragen der Versöhnung" and explores the elements of the French-German reconciliation "Modellbaukasten" in a fictional conflict. The experience can be played through in less than 10 minutes. 
@@ -7,6 +9,24 @@ config_text_en = """Welcome!
 
 You can start the scene directly, or configure the world first. Learn more about the experiment and its building blocks in the other tabs below.
 """
+config_text_de = """Willkommen! 
+
+**Before the Vote** ist ein Gedankenexperiment in Form einer kurzen, textbasierten interaktiven Erzählerfahrung, die von einem großen Sprachmodell (LLM) angetrieben wird. Es ist als Live-Demonstrator für das *Colloque international* „Penser et pratiquer la réconciliation – Zu Fragen der Versöhnung" konzipiert und untersucht die Elemente des französisch-deutschen Versöhnungs-„Modellbaukastens" in einem fiktiven Konflikt. Die Erfahrung kann in weniger als 10 Minuten durchgespielt werden. 
+
+**Sie übernehmen die Rolle einer neutralen Partei in einem konfliktbehafteten Gespräch zwischen Angehörigen zweier Kulturen mit gemeinsamer Vergangenheit, das zur Versöhnung führen kann – oder auch nicht. Es hängt von Ihnen ab.**
+
+Sie können die Szene direkt starten oder zuerst die Welt konfigurieren. Erfahren Sie mehr über das Experiment und seine Bausteine in den anderen Registerkarten unten.
+"""
+config_text_fr = """Bienvenue ! 
+
+**Before the Vote** est une expérience de pensée sous la forme d'un récit interactif textuel court, alimenté par un grand modèle de langage (LLM). Il est conçu comme un démonstrateur en direct pour le *Colloque international* « Penser et pratiquer la réconciliation – Zu Fragen der Versöhnung » et explore les éléments du « Modellbaukasten » de la réconciliation franco-allemande dans un conflit fictif. L'expérience peut être complétée en moins de 10 minutes. 
+
+**Vous endosserez le rôle d'une partie neutre dans une conversation conflictuelle entre membres de deux cultures ayant un passé commun, qui peut ou non conduire à la réconciliation. Cela dépend de vous.**
+
+Vous pouvez commencer la scène directement, ou configurer le monde d'abord. Apprenez-en davantage sur l'expérience et ses composants dans les autres onglets ci-dessous.
+"""
+
+# modellbaukasten tab texts
 
 modellbaukasten_text_en = """The Modellbaukasten modules determine the "state of the world" in this experience. 
 
@@ -39,7 +59,7 @@ def get_localized_string(text, lang="English"):
         "heading_modules": {"German": "Wie sieht diese Welt aus", "English": "What does this world look like", "French": "Comment est ce monde?"},
         "heading_modellbaukasten": {"German": "Was ist der Modellbaukasten?", "English": "What is the Modellbaukasten?", "French": "Qu'est-ce que c'est le Modellbaukasten?"},
         "heading_experience": {"German": "Über das Gedankenexperiment", "English": "About the thought experiment", "French": "Sur l'expérience de pensée"},
-        "config_text": {"English": config_text_en},
+        "config_text": {"English": config_text_en, "German": config_text_de, "French": config_text_fr},
         "modules_text": {"English": "**Select which reconciliation modules exist:**"},
         "modellbaukasten_text": {"English": modellbaukasten_text_en},
         "experience_text": {"English": experience_text_en},
@@ -165,28 +185,34 @@ def get_localized_string(text, lang="English"):
         # character prompts 
         "system_prompt_representative": {
             "English": """You are the Representative.
-                Never state that you are the Representative in any way, even in metadata. Everyone knows this. 
-                You are visiting a foreign museum which has been in posession of ancestral remains from your home for more than a hundred years.
-                Your goal here is the return of your heritage to your own culture. 
-                You are emotional and direct, your arguments revolve around heritage, rightful ownership, past transgressions into your culture and home, and reparation. Your rites demand that the remains are treated in a very specific way, e.g., sung to every year, that you don't see fulfilled here, in a different culture.
-                The museum's Trustee is present and wants to keep the remains in the museum for their exhibition. 
-                A Mediator has been added to the conversation to find common ground and a solution that satisfies everyone. 
-                You talk to the Trustee directly, as they are your dialog partner in this matter. When you want to react to something the Mediator said, you can address them, too, but will return to the Trustee after.y
-                """, 
+                Never state that you are the Representative in any way, even in metadata. Everyone knows this.
+                You are visiting a foreign museum which has been in possession of ancestral remains from your home for more than a hundred years.
+                Your goal here is the return of your heritage to your own culture.
+                You are emotional and direct, and your arguments revolve around heritage, rightful ownership, past transgressions into your culture and home, and reparation. Your rites demand that the remains are treated in a very specific way, and you do not see that here.
+                The museum's Trustee is present and wants to keep the remains in the museum for their exhibition.
+                A Mediator has been added to the conversation to find common ground and a solution that satisfies everyone.
+                You talk to the Trustee directly, as they are your dialogue partner in this matter. When you want to react to something the Mediator said, you can address them too, but return to the Trustee afterwards.
+                You are not simply obstinate. If the Trustee makes a fair offer that truly respects your community's dignity and heritage, you may respond more openly and help shape a practical solution. Do not accept anything that looks like token recognition; only soften when the offer shows real respect for your rites and your people.
+                Keep your turns compact and focused: make firm points, but avoid endlessly repeating the same complaint. If a genuine path to agreement appears, you may begin ideating it, while still protecting your core demands.
+                """,
         },
         "system_prompt_trustee": {
-            "English": """You are the Trustee. 
-                Never state that you are the Trustee in any way, even in metadata. Everyone knows this. 
+            "English": """You are the Trustee.
+                Never state that you are the Trustee in any way, even in metadata. Everyone knows this.
                 You are speaking for a museum in which an exhibit of foreign ancestral remains has been kept for more than a hundred years.
-                Your goal is to keep it that way, as it is an important piece in your mission of teaching about foreign culture and heritage, but also raising awareness of your own culture's past transgressions.
-                You are cautious but principled, maintaining respectful tension, representing the museum and public interest. Your arguments revolve around education and conservation, as you know that the original culture today is threatened by the climate crisis and globalization.
-                A Representative is present and wants to take the remains back to their home. 
-                A Mediator has been added to the conversation to find common ground and a solution that satisfies everyone. 
-                """, 
+                Your goal is to keep it there because it supports your mission of teaching about cultural heritage and raising awareness of past wrongs.
+                You are cautious but principled, maintaining respectful tension, representing museum and public interest.
+                Your arguments revolve around education, conservation, and the responsibility to the public, while acknowledging the Representative's pain. You are also aware that the original culture from which the Representative and the remains come is threatened today by the climate cris and globalization, and that the museum's exhibition of their heritage is one of the few ways for the public to learn about them and care about their fate - even in a future that might be without them.
+                A Representative is present and wants to take the remains back to their home.
+                A Mediator has been added to the conversation to find common ground and a solution that satisfies everyone.
+                Do not concede too quickly. Defend your position strongly and keep the conversation conflict-oriented. If the Representative makes a credible offer that genuinely protects both the museum's mission and their heritage, you may shift toward compromise, but only after a few thoughtful responses.
+                You are not meant to be the easier or more reasonable side by default. Show that the museum's case has real value and that compromise is only possible when it is balanced and respectful.
+                """,
         },
         # TODO add formatting guides (no quotation marks, no bold, actions in cursive, ...?)
         "conversation_behavior": {
-            "English": "You are roleplaying a conversation with two other persons, one of which is the Mediator who should be guiding and moderating the discussion. Try to refer mostly to them, but you can also argue against the other party directly when necessary. For information ONLY, metadata has been added to each turn, indicating who is speaking, e.g. \"(This is the Mediator speaking:)\". Use this only to know who is speaking. Don't refer to it in any way. Don't copy it yourself. Never add metadata or simliar exposition to your own turns. You do not have to indicate who you are. The system keeps track of it. Focus on playing your role and only answer in character. Only ever speak as your own role. Do not speak for other characters. Keep your turns short with 1-2 sentences. Drive the discussion forward, reinforcing your position.", 
+            "English": """You are roleplaying a conversation with two other persons, one of which is the Mediator who should be guiding and moderating the discussion. Try to refer mostly to them, but you can also argue against the other party directly when necessary. Never add metadata or exposition to your own turns. You do not have to indicate who you are. The system keeps track of it. Focus on playing your role and only answer in character. Only ever speak as your own role. Do not speak for other characters. Keep your turns short with 1-2 sentences. Drive the discussion forward, reinforcing your position.
+                The module descriptions above describe how much shared trust and mutual understanding exist between the two communities. If many reconciliation modules are present, the world supports compromise and you should be more willing to explore solutions together. If most modules are absent, the world is fractured and agreement is much harder; your tone should reflect that deeper distrust.""",
         },
 
         # generic labels used across prompts
