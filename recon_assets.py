@@ -189,9 +189,34 @@ def get_localized_string(text, lang="English"):
             "English": "You are roleplaying a conversation with two other persons, one of which is the Mediator who should be guiding and moderating the discussion. Try to refer mostly to them, but you can also argue against the other party directly when necessary. For information ONLY, metadata has been added to each turn, indicating who is speaking, e.g. \"(This is the Mediator speaking:)\". Use this only to know who is speaking. Don't refer to it in any way. Don't copy it yourself. Never add metadata or simliar exposition to your own turns. You do not have to indicate who you are. The system keeps track of it. Focus on playing your role and only answer in character. Only ever speak as your own role. Do not speak for other characters. Keep your turns short with 1-2 sentences. Drive the discussion forward, reinforcing your position.", 
         },
 
+        # generic labels used across prompts
+        "last_speaker_label": {
+            "English": "Last speaker:",
+        },
+        "no_last_speaker": {
+            "English": "None",
+        },
+
         # turn taking prompt
         "turn_taking_prompt": {
             "English": "Given the current conversation, do you want to take the next turn? Do NOT give a full dialog answer, yet, you will be prompted to do so in the next step. Here and now, just take or reject the turn. Only take the turn if you have something important to contribute or need to gain control over the discussion. Consider, for example: Have you been directly addressed? If yes, you should opt to speak. Has another character been directly addressed? If yes, you should not opt to speak. Are the other two currently speaking among themselves? If yes, it is polite not to interrupt them. However, if their discussion directly threatens your goals, you might have to disregard politeness, despite the diplomatically delicate setting, to push your agenda. If you want to take the next turn, return only and exactly: YES. Any other or additional output, including your reasoning for taking it or providing actual dialog, will lead to you NOT getting the turn.",
+        },
+        "turn_taking_prompt_evaluate_role": {
+            "English": "You are evaluating whether the role '{role}' should speak next.",
+        },
+        "turn_taking_prompt_answer_instructions": {
+            "English": "Based on the recent conversation above, answer ONLY with 'YES' or 'NO'. Do NOT provide any additional text or explanation.",
+        },
+
+        # chat response prompts
+        "chat_response_conversation_history": {
+            "English": "Conversation history:",
+        },
+        "chat_response_respond_as_role": {
+            "English": "Now respond AS {role}. Address the last speaker directly.",
+        },
+        "chat_response_output_format": {
+            "English": "Output ONLY the next reply text (do NOT prepend the speaker name).",
         },
 
         # end prompts

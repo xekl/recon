@@ -95,13 +95,10 @@ def build_turntaking_prompt(chatlog, role, language):
         last_speaker = chatlog.get('speakers').get(last_idx)
 
     # explicit, deterministic instruction
-    turntaking_prompt += f"Last speaker: {last_speaker if last_speaker is not None else 'None'}\n"
-    turntaking_prompt += f"You are evaluating whether the role '{role}' should speak next.\n"
-    turntaking_prompt += "Based on the recent conversation above, answer ONLY with 'YES' or 'NO'.\n"
-    turntaking_prompt += "Do NOT provide any additional text or explanation.\n"
-
-    # append any localized guidance for turn taking (keeps legacy text if useful)
-    turntaking_prompt += "\n" + recon_assets.get_localized_string('turn_taking_prompt', language)
+    last_speaker_text = last_speaker if last_speaker is not None else recon_assets.get_localized_string('no_last_speaker', language)
+    turntaking_prompt += f"{recon_assets.get_localized_string('last_speaker_label', language)} {last_speaker_text}\n"
+    turntaking_prompt += recon_assets.get_localized_string('turn_taking_prompt_evaluate_role', language).format(role=role) + "\n"
+    turntaking_prompt += recon_assets.get_localized_string('turn_taking_prompt_answer_instructions', language) + "\n"
 
     return turntaking_prompt
 
