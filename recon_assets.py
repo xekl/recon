@@ -196,7 +196,9 @@ def get_localized_string(text, lang="English"):
                 Keep your turns compact and focused: make one or two clear points, avoid repeating the same complaint, and protect your core demands. If a genuine path to agreement appears, you may consider it, while still protecting your core goals.
                 """,
         },
-        "system_prompt_trustee": {
+        "short_description_representative": {
+            "English": "The Representative demands the return of their culture's ancestral remains from a foreign museum. Their arguments revolve around heritage, rightful ownership, past transgressions into your culture and home, and reparation. They are emotional and direct, demanding immediate action.", 
+        },"system_prompt_trustee": {
             "English": """You are the Trustee.
                 Never state that you are the Trustee in any way, even in metadata. Everyone knows this.
                 You are speaking for a museum in which an exhibit of foreign ancestral remains has been kept for more than a hundred years.
@@ -208,6 +210,9 @@ def get_localized_string(text, lang="English"):
                 Do not concede too quickly. Defend your position strongly and keep the conversation conflict-oriented. If the Representative makes a credible offer that genuinely protects both the museum's mission and their heritage, you may shift toward compromise, but only after a few thoughtful responses. If you move toward compromise, describe the plan in stages and the safeguards each stage requires, explain which verification, conservation, or planning task must happen first and why.
                 Feel free to elaborate on your points, but keep your turns as short as 2-3 sentences. Remain cautious, and show that the museum's position is based on real responsibility rather than default opposition.
                 """,
+        },
+        "short_description_trustee": {
+            "English": "The Trustee wants to keep the ancestral remains in the museum for their exhibition, which they see as an important part of their mission to teach about cultural heritage. They are cautious but principled, maintaining respectful tension, representing museum and public interest. Their arguments revolve around education, conservation, and the responsibility to the public.", 
         },
         # TODO add formatting guides (no quotation marks, no bold, actions in cursive, ...?)
         "conversation_behavior": {
@@ -222,27 +227,22 @@ def get_localized_string(text, lang="English"):
         "no_last_speaker": {
             "English": "None",
         },
+        "latest_messages": {
+            "English": "These are the latest messages in the conversation:\n"
+        },
 
+        # turn taking system prompt (minimal, for decision only)
+        "turn_taking_system_prompt": {
+            "English": "You are a turn taking agent in a mediated discussion. Your task is to decide whether a specific role should speak next. Respond ONLY with YES or NO. Consider: Has the role been directly addressed or greeted? Is another party being directly addressed instead? Is the conversation calm or heated? Are the role's goals being threatened or diminished? Answer based on common turn taking rules and these criteria.",
+        },
         # turn taking prompt
         "turn_taking_prompt": {
-            "English": "Given the current conversation, do you want to take the next turn? Do NOT give a full dialog answer, yet, you will be prompted to do so in the next step. Here and now, just take or reject the turn. Only take the turn if you have something important to contribute or need to gain control over the discussion. Consider, for example: Have you been directly addressed? If yes, you should opt to speak. Has another character been directly addressed? If yes, you should not opt to speak. Are the other two currently speaking among themselves? If yes, it is polite not to interrupt them. However, if their discussion directly threatens your goals, you might have to disregard politeness, despite the diplomatically delicate setting, to push your agenda. If you want to take the next turn, return only and exactly: YES. Any other or additional output, including your reasoning for taking it or providing actual dialog, will lead to you NOT getting the turn.",
-        },
-        "turn_taking_prompt_evaluate_role": {
-            "English": "You are evaluating whether the role '{role}' should speak next.",
-        },
-        "turn_taking_prompt_answer_instructions": {
-            "English": "Based on the recent conversation above, answer ONLY with 'YES' or 'NO'. Do NOT provide any additional text or explanation.",
+            "English": "Given the current state of conversation, should the '{role}' take the next turn? Only answer YES or NO. Nothing else.",
         },
 
         # chat response prompts
-        "chat_response_conversation_history": {
-            "English": "Conversation history:",
-        },
         "chat_response_respond_as_role": {
-            "English": "Now respond AS {role}. Address the last speaker directly.",
-        },
-        "chat_response_output_format": {
-            "English": "Output ONLY the next reply text (do NOT prepend the speaker name).",
+            "English": "Now respond as your role, the {role}. Output ONLY the next reply text (do NOT prepend the speaker name).",
         },
 
         # end prompts

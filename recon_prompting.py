@@ -76,7 +76,7 @@ def build_turntaking_prompt(chatlog, role, language):
     - language: current language setting
     """
 
-    turntaking_prompt = ""
+    turntaking_prompt = recon_assets.get_localized_string('latest_messages', language)
 
     # build previous conversation (cap to recent turns)
     last_message_cap = 8
@@ -96,9 +96,12 @@ def build_turntaking_prompt(chatlog, role, language):
 
     # explicit, deterministic instruction
     last_speaker_text = last_speaker if last_speaker is not None else recon_assets.get_localized_string('no_last_speaker', language)
-    turntaking_prompt += f"{recon_assets.get_localized_string('last_speaker_label', language)} {last_speaker_text}\n"
-    turntaking_prompt += recon_assets.get_localized_string('turn_taking_prompt_evaluate_role', language).format(role=role) + "\n"
-    turntaking_prompt += recon_assets.get_localized_string('turn_taking_prompt_answer_instructions', language) + "\n"
+    # turntaking_prompt += f"{recon_assets.get_localized_string('last_speaker_label', language)} {last_speaker_text}\n"
+    if role == 'Representative':
+        turntaking_prompt += recon_assets.get_localized_string('short_description_representative', language) + "\n"
+    if role == 'Trustee':
+        turntaking_prompt += recon_assets.get_localized_string('short_description_trustee', language) + "\n"
+    turntaking_prompt += f"{recon_assets.get_localized_string('turn_taking_prompt', language).format(role=role)}\n"
 
     return turntaking_prompt
 

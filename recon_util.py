@@ -113,11 +113,10 @@ def get_chat_response(system_prompt, chatlog, role, model="llama3.2:latest"):
         last_speaker = transcript_lines[-1].split(":", 1)[0]
     
     # user-style prompt including explicit instruction who should respond next
-    user_prompt = recon_assets.get_localized_string('chat_response_conversation_history', 'English') + "\n" + transcript + "\n\n"
-    last_speaker_text = last_speaker if last_speaker is not None else recon_assets.get_localized_string('no_last_speaker', 'English')
-    user_prompt += f"{recon_assets.get_localized_string('last_speaker_label', 'English')} {last_speaker_text}\n"
+    user_prompt = recon_assets.get_localized_string('latest_messages', 'English') + "\n" + transcript + "\n\n----\n\n"
+    # last_speaker_text = last_speaker if last_speaker is not None else recon_assets.get_localized_string('no_last_speaker', 'English')
+    # user_prompt += f"{recon_assets.get_localized_string('last_speaker_label', 'English')} {last_speaker_text}\n"
     user_prompt += recon_assets.get_localized_string('chat_response_respond_as_role', 'English').format(role=role) + "\n"
-    user_prompt += recon_assets.get_localized_string('chat_response_output_format', 'English') + "\n"
 
     # prepare messages for the chat API
     messages = [
