@@ -33,7 +33,7 @@ if 'modules' not in st.session_state:
 if 'timer_start' not in st.session_state:
     st.session_state.timer_start = None
 if 'timer_duration' not in st.session_state:
-    st.session_state.timer_duration = 420  # 7 minutes in seconds
+    st.session_state.timer_duration = 300  # 300 = 5, 420 = 7 minutes in seconds
 if 'timer_expired' not in st.session_state:
     st.session_state.timer_expired = False
 if 'timer_paused' not in st.session_state:
