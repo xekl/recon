@@ -229,20 +229,18 @@ chat_css = """
 </style>
 """
 
-AVATARS = {
-    "Mediator": None,
-    "Representative": "🗣️",
-    "Trustee": "🎩"
-} # TODO add suitable avatars, can be local images
+# AVATARS = {
+#     "Mediator": None,
+#     "Representative": "🗣️",
+#     "Trustee": "🎩"
+# } # TODO add suitable avatars, can be local images
 
 # def render_message(speaker, text):
 def render_message(speaker, message):
 
     if isinstance(message, str):
-        # speaker = "placeholder"
         text = message
     else:
-        # speaker = message.get("role", None)
         text = message.get("content", None)
 
     if speaker == "Mediator":
@@ -254,17 +252,8 @@ def render_message(speaker, message):
     else:
         css_class = "chat-center"
 
-    # if speaker == "user":
-    #     speaker = "Mediator"
-    #     css_class = "chat-center"
-    # elif speaker == "Representative":
-    #     css_class = "chat-left"
-    # elif speaker == "Trustee":
-    #     css_class = "chat-right"
-    # else:
-    #     css_class = "chat-center"
-
-    with st.chat_message(speaker, avatar=AVATARS.get(speaker, None)):
+    # with st.chat_message(speaker, avatar=AVATARS.get(speaker, None)):
+    with st.chat_message(speaker, avatar=None):
         if speaker == "Mediator":
             st.markdown(f"<div class='{css_class}'>{text}</div>", unsafe_allow_html=True)
         else: 
