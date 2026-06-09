@@ -1,8 +1,8 @@
 
 import streamlit as st
-import streamlit.components.v1 as components
 
 from datetime import datetime
+import time
 
 import recon_assets
 import recon_util
@@ -127,7 +127,6 @@ if st.session_state.state == 'scene':
         # if time is up 
         if remaining <= 0 and not st.session_state.timer_expired:
             st.session_state.timer_expired = True
-            # TODO display a final message?
             st.rerun()
 
     # TODO kickoff conversation with NPC turns?
@@ -201,49 +200,37 @@ if st.session_state.state == 'scene':
 
     st.write("---")
 
-    # ---- display timer ----
-    # TODO pausing timer works but is not displayed correctly, the JavaScript timer keeps counting down during the pause.
-
-    if st.session_state.timer_start is not None and st.session_state.timer_paused == False:
-        # JavaScript-based countdown timer
-        end_time_ms = int((st.session_state.timer_start.timestamp() + st.session_state.timer_duration) * 1000)
-        timer_html = f"""<div id="timer-display" style="text-align: center; font-size: 24px; font-weight: bold; padding: 10px; margin-bottom: 20px;">
-            <span id="timer-text"></span>
-        </div>
-        <script>
-        const endTime = {end_time_ms};
-        
-        function updateTimer() {{
-            const now = new Date().getTime();
-            const remaining = Math.max(0, endTime - now);
-            const minutes = Math.floor(remaining / 60000);
-            const seconds = Math.floor((remaining % 60000) / 1000);
-            
-            const timerText = document.getElementById('timer-text');
-            if (timerText) {{
-                const timeStr = minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
-                
-                let color = 'green';
-                if (remaining < 60000) color = 'red';
-                else if (remaining < 120000) color = 'orange';
-                
-                timerText.innerHTML = '<span style="font-family: sans-serif;">Time Remaining: <span style="color: ' + color + '; font-family: sans-serif;">' + timeStr + '</span></span>';
-            }}
-        }}
-        
-        updateTimer();
-        const interval = setInterval(updateTimer, 1000);
-        </script>"""
-        components.html(timer_html, height=80)
-
-    # ---- end timer section ----
-
     # conclude scene manually with button 
     _, _, _, col, _, _, _ = st.columns([1,2,3,4,3,2,1]) # hacky way to center button ...
     if len(st.session_state.chatlog.get('speakers')) > 0: # only show end scene button after at least one message has been sent
         if col.button(recon_assets.get_localized_string('end_scene_button', st.session_state.language)):
             st.session_state.state = 'end'
             st.rerun()
+
+    # ---- display timer ----
+
+    timer_placeholder = st.empty()
+    if st.session_state.timer_start is not None:
+        remaining = int(get_remaining_time())
+        minutes = remaining // 60
+        seconds = remaining % 60
+        color = "green"
+        if remaining < 60:
+            color = "red"
+        elif remaining < 120:
+            color = "orange"
+        timer_placeholder.markdown(
+            f"<div style='text-align:center; font-size:24px;'>"
+            f"{recon_assets.get_localized_string('time_remaining_text', st.session_state.language)}: <span style='color:{color}'>{minutes:02}:{seconds:02}</span>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
+        # auto-refresh loop
+        if not st.session_state.timer_paused and not st.session_state.timer_expired:
+            time.sleep(1)
+            st.rerun()
+
+    # ---- end timer section ----
 
 # -----------------------------
 # ENDING SCENE
