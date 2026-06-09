@@ -46,11 +46,15 @@ def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
         messages.append({'role': "system", 'content': system_prompt})
         messages.append({'role': "user", 'content': prompt})
 
-        response = groq_client.chat.completions.create(
-            model = "llama-3.3-70b-versatile",
-            # max_tokens = max_tokens,
-            # temperature = temperature,
-            messages = messages)
+        try:
+            response = groq_client.chat.completions.create(
+                model = "llama-3.3-70b-versatile",
+                # max_tokens = max_tokens,
+                # temperature = temperature,
+                messages = messages)
+        except Exception as e:
+            print_logger.debug("    response: " + str(response))
+            return f"[LLM ERROR] request failed - {str(e)}"
 
         # extract response text 
         try:
@@ -81,16 +85,22 @@ def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
                     },
                 timeout=(10, 300) # 10s to connect, 5 minutes to read -> don't run into timeout errors too early
             )
-            data = response.json()
-            
-            file_logger.debug("  get_llm_generation\n\n  with system-prompt:\n  " + system_prompt + "  \n\nwith prompt:\n  " + prompt + "  \n\nwith result:\n  " + data.get("response", "").strip())
-            print_logger.debug("  response logged in file: " + logfile)
-
-            return data.get("response", "").strip()
-        
+            print_logger.debug("    response: " + str(response))
         except Exception as e:
-            return f"[LLM ERROR] {str(e)}"
+            print_logger.debug("    response.json(): " + str(response.json()))
+            return f"[LLM ERROR] request failed - {str(e)}"
+        
+        try:
+            data = response.json()
+            result = data.get("response", "").strip()
+        except Exception as e:
+            return f"[LLM ERROR] could not parse response - {str(e)}"
 
+        file_logger.debug("  get_llm_generation\n\n  with system-prompt:\n  " + system_prompt + "  \n\nwith prompt:\n  " + prompt + "  \n\nwith result:\n  " + str(result))
+        print_logger.debug("  response logged in file: " + logfile)
+
+        return result
+        
 
 # def get_chat_response(system_prompt, messages, model="llama3.2:latest"):
 def get_chat_response(system_prompt, chatlog, role, model="llama3.2:latest"):
