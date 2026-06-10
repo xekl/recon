@@ -15,7 +15,7 @@ import recon_prompting
 # the model that will be used for this run 
 # model = 'groq' # use powerful online models
 model = 'llama3.2:latest' # use local ollama models
-model = 'gemma4:latest' # use local ollama models
+# model = 'gemma4:latest' # use local ollama models
 
 # initialize session state
 if 'state' not in st.session_state:
@@ -248,14 +248,15 @@ if st.session_state.state == 'end':
     st.header(recon_assets.get_localized_string('end_header', st.session_state.language))
     st.subheader(recon_assets.get_localized_string('heading_modules', st.session_state.language))
 
-    # Analyze module impacts ...
-    recon_util.print_logger.debug("analyzing module impacts ...")
-    enabled_modules = {k: v for k, v in st.session_state.modules.items() if v}
-    if enabled_modules:
-        impact_system_prompt, impact_user_prompt = recon_prompting.build_module_impact_analysis_prompt(st.session_state.chatlog, st.session_state.modules, st.session_state.language)
-        impact_analysis = recon_util.get_llm_generation(impact_system_prompt, impact_user_prompt, model=model)
-        # Parse impacts from the analysis - extract module-specific impact summaries
-        st.session_state.module_impacts = recon_util.parse_module_impacts(impact_analysis, enabled_modules, st.session_state.language)
+    # Analyze module impacts ... (only on first load)
+    if st.session_state.module_impacts == {}:
+        recon_util.print_logger.debug("analyzing module impacts ...")
+        enabled_modules = {k: v for k, v in st.session_state.modules.items() if v}
+        if enabled_modules:
+            impact_system_prompt, impact_user_prompt = recon_prompting.build_module_impact_analysis_prompt(st.session_state.chatlog, st.session_state.modules, st.session_state.language)
+            impact_analysis = recon_util.get_llm_generation(impact_system_prompt, impact_user_prompt, model=model)
+            # Parse impacts from the analysis - extract module-specific impact summaries
+            st.session_state.module_impacts = recon_util.parse_module_impacts(impact_analysis, enabled_modules, st.session_state.language)
     # ... and display results
     module_markdown = ""
     for k, v in st.session_state.modules.items():
@@ -296,8 +297,8 @@ if st.session_state.state == 'end':
         # tell the ending 
         ending_system_prompt, ending_prompt = recon_prompting.build_ending_prompts(st.session_state.chatlog, st.session_state.language, npc_a_decision, npc_b_decision)
         ending_message = recon_util.get_llm_generation(ending_system_prompt, ending_prompt, model=model)
-        recon_util.render_message("DECISION", ending_message)
-    
+        recon_util.render_message(recon_assets.get_localized_string('decision_subheader', st.session_state.language), ending_message)
+
     st.markdown("")
     st.markdown("")
 
