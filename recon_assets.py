@@ -245,10 +245,10 @@ def get_localized_string(text, lang="English"):
             "English": "After the above discussion, it is now time to decide what to do. Take into account how the conversation went, what suggestions were made and how the other parties behaved, then state you verdict, in 1-2 sentences. You don't have to compromise or concede if you don't think the other side argued well for it. Remember your goals and if you reached them. Critically assess: Are you satisfied? Will your side be satisfied? What solution do you envision for the matter?",
         },
         "ending_system_prompt": {
-            "English": "You are the narrator of a story ending. Two characters are in conflict over a cultural conondrum. Your task is to decide over the outcome of their exchange and narrate a realistic ending. These are their instructions and views:\n\n",
+            "English": "You are the narrator of a story ending. Two characters are in conflict over a cultural conondrum. Your task is to decide over the outcome of their exchange and narrate a realistic ending. These are their views:\n\n",
         },
         "ending_prompt_part1": {
-            "English": "The two characters had a conversation with a mediator about their issue, here are the last few turns:\n",
+            "English": "The two characters had a conversation with a mediator about their issue, here are the last turns:\n",
         },
         "ending_prompt_part2": {
             "English": "Both came up with a personal verdict. \nThe Representative said:",

@@ -174,9 +174,10 @@ if st.session_state.state == 'scene':
         # 2 — NPC A reaction
         role = 'Representative'
         role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
-        turn_taking_system_prompt = recon_assets.get_localized_string('turn_taking_system_prompt', st.session_state.language)
-        turn_taking_prompt = recon_prompting.build_turntaking_prompt(st.session_state.chatlog, role, st.session_state.language)
-        take_turn = recon_util.get_llm_generation(turn_taking_system_prompt, turn_taking_prompt, model=model)
+        # turn_taking_system_prompt = recon_assets.get_localized_string('turn_taking_system_prompt', st.session_state.language)
+        # turn_taking_prompt = recon_prompting.build_turntaking_prompt(st.session_state.chatlog, role, st.session_state.language)
+        # take_turn = recon_util.get_llm_generation(turn_taking_system_prompt, turn_taking_prompt, model=model)
+        take_turn = "yes" # for testing, let both NPCs always take turn
         if take_turn.lower().strip().replace('.', '').replace('!', '') == 'yes':
             # recon_util.print_logger.debug("Representative wants to take turn")
             npc_a_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog, role, model=model)
@@ -189,9 +190,10 @@ if st.session_state.state == 'scene':
         # 3 — NPC B reaction
         role = 'Trustee'
         role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
-        turn_taking_system_prompt = recon_assets.get_localized_string('turn_taking_system_prompt', st.session_state.language)
-        turn_taking_prompt = recon_prompting.build_turntaking_prompt(st.session_state.chatlog, role, st.session_state.language)
-        take_turn = recon_util.get_llm_generation(turn_taking_system_prompt, turn_taking_prompt, model=model)
+        # turn_taking_system_prompt = recon_assets.get_localized_string('turn_taking_system_prompt', st.session_state.language)
+        # turn_taking_prompt = recon_prompting.build_turntaking_prompt(st.session_state.chatlog, role, st.session_state.language)
+        # take_turn = recon_util.get_llm_generation(turn_taking_system_prompt, turn_taking_prompt, model=model)
+        take_turn = "yes" # for testing, let both NPCs always take turn
         if take_turn.lower().strip().replace('.', '').replace('!', '') == 'yes':
             # recon_util.print_logger.debug("Trustee wants to take turn")
             npc_b_out = recon_util.get_chat_response(role_system_prompt, st.session_state.chatlog, role, model=model)
@@ -279,7 +281,9 @@ if st.session_state.state == 'end':
 
         vote_prompt = recon_prompting.build_vote_prompt(st.session_state.chatlog, st.session_state.language)
 
-        # let both NPCs give their final statement
+        # let both NPCs give their final statements
+        npc_a_decision = None
+        npc_b_decision = None
         # role = "Representative"
         # role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
         # npc_a_decision = recon_util.get_llm_generation(role_system_prompt, vote_prompt, model=model)
@@ -290,7 +294,7 @@ if st.session_state.state == 'end':
         # recon_util.render_message(role, npc_b_decision)
 
         # tell the ending 
-        ending_system_prompt, ending_prompt = recon_prompting.build_ending_prompts(st.session_state.chatlog, npc_a_decision, npc_b_decision, st.session_state.language)
+        ending_system_prompt, ending_prompt = recon_prompting.build_ending_prompts(st.session_state.chatlog, st.session_state.language, npc_a_decision, npc_b_decision)
         ending_message = recon_util.get_llm_generation(ending_system_prompt, ending_prompt, model=model)
         recon_util.render_message("DECISION", ending_message)
     

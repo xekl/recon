@@ -139,21 +139,22 @@ def build_vote_prompt(messages, language):
 
     return vote_prompt
 
-def build_ending_prompts(chatlog, decision_a, decision_b, language):
+def build_ending_prompts(chatlog, language, decision_a=None, decision_b=None):
 
     ending_system_prompt = recon_assets.get_localized_string('ending_system_prompt', language)
 
     # character positions
-    ending_system_prompt += recon_assets.get_localized_string('system_prompt_representative', language)
-    ending_system_prompt += recon_assets.get_localized_string('system_prompt_trustee', language)
+    ending_system_prompt += recon_assets.get_localized_string('short_description_representative', language)
+    ending_system_prompt += recon_assets.get_localized_string('short_description_trustee', language)
 
     # conversation - use helper function
     ending_prompt = recon_assets.get_localized_string('ending_prompt_part1', language)
     ending_prompt += build_conversation_summary(chatlog, language) + "\n"
 
-    # verdicts
-    ending_prompt += recon_assets.get_localized_string('ending_prompt_part2', language) + decision_a 
-    ending_prompt += recon_assets.get_localized_string('ending_prompt_part3', language) + decision_b 
+    # verdicts (only if collected)
+    if decision_a is not None and decision_b is not None:
+        ending_prompt += recon_assets.get_localized_string('ending_prompt_part2', language) + decision_a 
+        ending_prompt += recon_assets.get_localized_string('ending_prompt_part3', language) + decision_b 
 
     # voting explanation
     ending_prompt += recon_assets.get_localized_string('ending_prompt_part4', language)
