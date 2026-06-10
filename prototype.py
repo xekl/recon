@@ -280,14 +280,14 @@ if st.session_state.state == 'end':
         vote_prompt = recon_prompting.build_vote_prompt(st.session_state.chatlog, st.session_state.language)
 
         # let both NPCs give their final statement
-        role = "Representative"
-        role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
-        npc_a_decision = recon_util.get_llm_generation(role_system_prompt, vote_prompt, model=model)
-        recon_util.render_message(role, npc_a_decision)
-        role = "Trustee"
-        role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
-        npc_b_decision = recon_util.get_llm_generation(role_system_prompt, vote_prompt, model=model)
-        recon_util.render_message(role, npc_b_decision)
+        # role = "Representative"
+        # role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
+        # npc_a_decision = recon_util.get_llm_generation(role_system_prompt, vote_prompt, model=model)
+        # recon_util.render_message(role, npc_a_decision)
+        # role = "Trustee"
+        # role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
+        # npc_b_decision = recon_util.get_llm_generation(role_system_prompt, vote_prompt, model=model)
+        # recon_util.render_message(role, npc_b_decision)
 
         # tell the ending 
         ending_system_prompt, ending_prompt = recon_prompting.build_ending_prompts(st.session_state.chatlog, npc_a_decision, npc_b_decision, st.session_state.language)
