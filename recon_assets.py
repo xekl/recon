@@ -232,7 +232,7 @@ def get_localized_string(text, lang="English"):
         },
         # turn taking prompt
         "turn_taking_prompt": {
-            "English": "Given the current state of conversation, should the '{role}' take the next turn? Only answer YES or NO. Nothing else.",
+            "English": "Given the current state of conversation, should the {role} take the next turn? Only answer YES or NO. Nothing else.",
         },
 
         # chat response prompts
@@ -258,6 +258,23 @@ def get_localized_string(text, lang="English"):
         },
         "ending_prompt_part4": {
             "English": "\n\nIt is now time to decide what happens. Take into account all of the above and narrate a third person ending for this issue in 2-4 sentences. It is ok if it ends in disagreement, if the parties cannot find any compromise or part in even more strife than before, be realistic and consider where they could or could not agree and how they behaved towards each other.",
+        },
+
+        # module impact analysis prompts
+        "module_impact_analysis_system_prompt": {
+            "English": "You are an expert analyst of reconciliation processes. Your task is to analyze how specific reconciliation infrastructure modules (Modellbaukasten elements) influenced a diplomatic conversation between conflicting parties. For each module you are asked about, provide a concise 1-2 sentence summary of how it shaped the conversation, the arguments made, the tone, or the dynamics between parties. Be specific and evidence-based, pointing to patterns in how the parties referenced or relied on these institutional frameworks.",
+        },
+        "module_impact_analysis_intro": {
+            "English": "Now analyze the impact of each of these modules on this conversation:\n\n",
+        },
+        "module_impact_analysis_query": {
+            "English": "How did this module shape the conversation? (1-2 sentences, plain text without any formatting)\n\n",
+        },
+        "module_impact_analysis_module": {
+            "English": "MODULE: ",
+        },
+        "module_impact_analysis_module_description": {
+            "English": "Description: ",
         },
 
     }

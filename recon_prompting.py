@@ -2,6 +2,36 @@
 import recon_assets
 
 
+# Helper function to build conversation summary
+def build_conversation_summary(chatlog, language, max_messages=None):
+    """
+    Build formatted conversation text from chatlog.
+    
+    Parameters:
+    - chatlog: dict with 'speakers' and 'messages' keys
+    - language: current language setting
+    - max_messages: number of latest messages to include in the transcript
+    
+    Returns:
+    - Formatted conversation text with speaker names and content
+    """
+
+    conversation_text = recon_assets.get_localized_string('latest_messages', language)
+    message_indices = sorted(chatlog.get('speakers').keys())
+    if max_messages is None:
+        max_messages = len(message_indices)
+
+    if len(message_indices) > max_messages:
+        conversation_text += "...\n\n"
+        message_indices = message_indices[-max_messages:]
+
+    for i in message_indices:
+        speaker = chatlog.get('speakers').get(i)
+        content = chatlog.get('messages').get(i).get('content')
+        conversation_text += f"{speaker}: {content}\n\n"
+
+    return conversation_text
+
 # def build_system_prompt(modules, conversation, role):
 def build_system_prompt(modules, role, language):
 
@@ -76,20 +106,12 @@ def build_turntaking_prompt(chatlog, role, language):
     - language: current language setting
     """
 
-    turntaking_prompt = recon_assets.get_localized_string('latest_messages', language)
-
-    # build previous conversation (cap to recent turns)
-    last_message_cap = 8
-    message_indices = list(chatlog.get('speakers').keys())
-    recent_indices = message_indices[-last_message_cap:]
-    for i in recent_indices:
-        speaker = chatlog.get('speakers').get(i)
-        content = chatlog.get('messages').get(i).get('content')
-        turntaking_prompt += f"{speaker}: {content}\n"
+    turntaking_prompt = build_conversation_summary(chatlog, language, max_messages=3)
     turntaking_prompt += "\n----\n"
 
     # identify last speaker
     last_speaker = None
+    message_indices = sorted(chatlog.get('speakers').keys())
     if len(message_indices) > 0:
         last_idx = message_indices[-1]
         last_speaker = chatlog.get('speakers').get(last_idx)
@@ -109,9 +131,8 @@ def build_vote_prompt(messages, language):
 
     vote_prompt = ""
 
-    # conversation
-    # TODO cap at context length to only include latest
-    vote_prompt += str(messages) + "\n----\n"
+    # conversation - use helper function
+    vote_prompt += build_conversation_summary(messages, language) + "\n----\n"
 
     # voting explanation
     vote_prompt += recon_assets.get_localized_string('vote_prompt', language)
@@ -126,14 +147,9 @@ def build_ending_prompts(chatlog, decision_a, decision_b, language):
     ending_system_prompt += recon_assets.get_localized_string('system_prompt_representative', language)
     ending_system_prompt += recon_assets.get_localized_string('system_prompt_trustee', language)
 
-    # conversation
-    # TODO cap at context length to only include latest
-    # TODO format more nicely with speakers
-    ending_prompt = ""
-    messages = []
-    for i in range(len(chatlog.get('messages'))):
-        messages.append(chatlog.get('messages').get(i).get('content')) 
-    ending_prompt += recon_assets.get_localized_string('ending_prompt_part1', language) + str(messages[-5:]) + "\n"
+    # conversation - use helper function
+    ending_prompt = recon_assets.get_localized_string('ending_prompt_part1', language)
+    ending_prompt += build_conversation_summary(chatlog, language) + "\n"
 
     # verdicts
     ending_prompt += recon_assets.get_localized_string('ending_prompt_part2', language) + decision_a 
@@ -143,5 +159,49 @@ def build_ending_prompts(chatlog, decision_a, decision_b, language):
     ending_prompt += recon_assets.get_localized_string('ending_prompt_part4', language)
 
     return ending_system_prompt, ending_prompt
+
+def build_module_impact_analysis_prompt(chatlog, modules, language):
+    """
+    Build a prompt to analyze how each enabled module influenced the conversation.
+    
+    Parameters:
+    - chatlog: dict with 'speakers' and 'messages' keys
+    - modules: dict of module name -> bool (True if present)
+    - language: current language setting
+    
+    Returns:
+    - system_prompt: analyzes from neutral perspective
+    - user_prompt: asks for impact summary of each enabled module
+    """
+    
+    # Get enabled modules
+    enabled_modules = [k for k, v in modules.items() if v]
+    
+    if not enabled_modules:
+        return "", ""
+    
+    system_prompt = recon_assets.get_localized_string("module_impact_analysis_system_prompt", language)
+    conversation_text = build_conversation_summary(chatlog, language)    
+    user_prompt = conversation_text + "\n----\n\n" + recon_assets.get_localized_string("module_impact_analysis_intro", language)
+    
+    # Add module information for each enabled module
+    module_descriptions = {
+        "present": {
+            "youth_exchange": recon_assets.get_localized_string("baukasten_present_representative_youth_exchange", language),
+            "academic_network": recon_assets.get_localized_string("baukasten_present_representative_academic_network", language),
+            "cultural_institute": recon_assets.get_localized_string("baukasten_present_representative_cultural_institute", language),
+            "historical_account": recon_assets.get_localized_string("baukasten_present_representative_historical_account", language),
+            "civil_society": recon_assets.get_localized_string("baukasten_present_representative_civil_society", language),
+        }
+    }
+    
+    for module_key in enabled_modules:
+        module_name = recon_assets.get_localized_string(module_key, language)
+        module_desc = module_descriptions.get("present", {}).get(module_key, "")
+        user_prompt += f"{recon_assets.get_localized_string('module_impact_analysis_module', language)}{module_name}\n"
+        user_prompt += f"{recon_assets.get_localized_string('module_impact_analysis_module_description', language)}{module_desc}\n"
+        user_prompt += recon_assets.get_localized_string("module_impact_analysis_query", language)
+    
+    return system_prompt, user_prompt
 
 

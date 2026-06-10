@@ -29,6 +29,10 @@ if 'language' not in st.session_state:
 if 'modules' not in st.session_state:
     st.session_state.modules = {}
 
+# Baukasten impact tracking
+if 'module_impacts' not in st.session_state:
+    st.session_state.module_impacts = {}  # stores impact analysis for each module
+
 # timer state 
 if 'timer_start' not in st.session_state:
     st.session_state.timer_start = None
@@ -180,7 +184,7 @@ if st.session_state.state == 'scene':
             st.session_state.chatlog['messages'][message_no] = npc_a_out
             message_no += 1
         else:
-            recon_util.print_logger.debug("Representative does not want to take turn, says:", str(take_turn))
+            recon_util.print_logger.debug("Representative does not want to take turn, says: " + str(take_turn))
 
         # 3 — NPC B reaction
         role = 'Trustee'
@@ -194,7 +198,7 @@ if st.session_state.state == 'scene':
             st.session_state.chatlog['speakers'][message_no] = role
             st.session_state.chatlog['messages'][message_no] = npc_b_out
         else:
-            recon_util.print_logger.debug("Trustee does not want to take turn, says:", str(take_turn))
+            recon_util.print_logger.debug("Trustee does not want to take turn, says: " + str(take_turn))
         
         resume_timer()
 
@@ -241,10 +245,27 @@ if st.session_state.state == 'end':
     
     st.header(recon_assets.get_localized_string('end_header', st.session_state.language))
     st.subheader(recon_assets.get_localized_string('heading_modules', st.session_state.language))
-    
+
+    # Analyze module impacts ...
+    recon_util.print_logger.debug("analyzing module impacts ...")
+    enabled_modules = {k: v for k, v in st.session_state.modules.items() if v}
+    if enabled_modules:
+        impact_system_prompt, impact_user_prompt = recon_prompting.build_module_impact_analysis_prompt(st.session_state.chatlog, st.session_state.modules, st.session_state.language)
+        impact_analysis = recon_util.get_llm_generation(impact_system_prompt, impact_user_prompt, model=model)
+        # Parse impacts from the analysis - extract module-specific impact summaries
+        st.session_state.module_impacts = recon_util.parse_module_impacts(impact_analysis, enabled_modules, st.session_state.language)
+    # ... and display results
     module_markdown = ""
     for k, v in st.session_state.modules.items():
-        module_markdown += f"- {'✓' if v else '✗'} - {recon_assets.get_localized_string(k, st.session_state.language)}\n"
+        module_name = recon_assets.get_localized_string(k, st.session_state.language)
+        status = '✓' if v else '✗'
+        # Add impact summary if available
+        impact_text = ""
+        if v and k in st.session_state.module_impacts:
+            impact_summary = st.session_state.module_impacts.get(k, "").strip()
+            if impact_summary:
+                impact_text = f" — {impact_summary}"
+        module_markdown += f"- {status} - {module_name}{impact_text}\n"
     st.markdown(module_markdown)
     
     st.subheader(recon_assets.get_localized_string('decision_subheader', st.session_state.language))
@@ -280,4 +301,3 @@ if st.session_state.state == 'end':
         for k in list(st.session_state.keys()):
             del st.session_state[k]
         st.rerun()
-
