@@ -1,5 +1,8 @@
-import requests
+
 import streamlit as st
+import requests
+import smtplib
+from email.mime.text import MIMEText
 
 import logging
 logfile = "debug_log.txt"
@@ -351,3 +354,24 @@ def parse_module_impacts(impact_analysis_text, enabled_modules, language):
     print_logger.debug(f"  parsed module impacts: {impacts}")
     
     return impacts
+
+
+def send_log_email(what_to_log):
+
+    # body = "\n\n".join(
+    #     f"[{turn['role'].upper()}]: {turn['content']}"
+    #     for turn in conversation
+    # )
+    body = what_to_log
+
+    msg = MIMEText(body, "plain", "utf-8")
+    msg["Subject"] = "Demo Session Log"
+    msg["From"] = st.secrets["SMTP_USER"] # from me 
+    msg["To"] = st.secrets["SMTP_USER"] # to me 
+
+    # Office 365 uses STARTTLS on port 587, NOT SSL on 465
+    with smtplib.SMTP(st.secrets["SMTP_HOST"], st.secrets["SMTP_PORT"]) as server:
+        server.ehlo()
+        server.starttls()
+        server.login(st.secrets["SMTP_USER"], st.secrets["SMTP_PASSWORD"])
+        server.send_message(msg)
