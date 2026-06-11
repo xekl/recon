@@ -1,4 +1,6 @@
 
+from datetime import datetime 
+
 import streamlit as st
 import requests
 import smtplib
@@ -353,16 +355,13 @@ def parse_module_impacts(impact_analysis_text, enabled_modules, language):
     
     return impacts
 
+# -----------------------------
+# Utility: Send results from online demo for later analysis
+# -----------------------------
 
-def send_log_email(what_to_log):
+def send_log_email(log_content):
 
-    # body = "\n\n".join(
-    #     f"[{turn['role'].upper()}]: {turn['content']}"
-    #     for turn in conversation
-    # )
-    body = what_to_log
-
-    msg = MIMEText(body, "plain", "utf-8")
+    msg = MIMEText(log_content, "plain", "utf-8")
     msg["Subject"] = "Demo Session Log"
     msg["From"] = st.secrets["SMTP_USER"] # from me 
     msg["To"] = st.secrets["SMTP_USER"] # to me 
@@ -373,3 +372,23 @@ def send_log_email(what_to_log):
         server.starttls()
         server.login(st.secrets["SMTP_USER"], st.secrets["SMTP_PASSWORD"])
         server.send_message(msg)
+
+def save_log_as_gist(log_content):
+
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    response = requests.post(
+        "https://api.github.com/gists",
+        json={
+            "description": f"recondemo_session_{timestamp}",
+            "public": False, # private gist
+            "files": {
+                f"recondemo_session_{timestamp}.txt": {"content": log_content}
+            }
+        },
+        headers={
+            "Authorization": f"Bearer {st.secrets['GITHUB_TOKEN']}",
+            "Accept": "application/vnd.github+json"
+        }
+    )
+    

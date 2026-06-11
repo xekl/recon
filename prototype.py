@@ -308,14 +308,12 @@ if st.session_state.state == 'end':
     st.markdown("")
 
     # send transcript to me for later viewing
-    st.markdown("opening log file")
     with open('debug_log.txt', 'r') as logfile:
-        st.markdown("file open, reading text")
         full_log = logfile.read()
-        st.markdown("sending mail")
-        recon_util.print_logger.debug("sending mail ...")
-        recon_util.send_log_email(full_log)
-        st.markdown("mail sent")
+        # recon_util.print_logger.debug("sending mail ...")
+        # recon_util.send_log_email(full_log)
+        recon_util.print_logger.debug("sending gist ...")
+        recon_util.save_log_as_gist(full_log)
 
     if st.button("Restart"):
         for k in list(st.session_state.keys()):
