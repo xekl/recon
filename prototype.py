@@ -152,6 +152,9 @@ if st.session_state.state == 'scene':
 
     if user_text:
 
+        # show message 
+        recon_util.render_message('Mediator', user_text)
+
         # start the clock! on first message
         if st.session_state.timer_start is None:
             st.session_state.timer_start = datetime.now()
