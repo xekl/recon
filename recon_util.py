@@ -168,9 +168,7 @@ def get_chat_response(system_prompt, chatlog, role, model="llama3.2:latest"):
         # remove thinking if model thought 
         try:
             if "</think>" in result: 
-                print_logger.error("  ---- thinking detected: " + str(len(message['content'])))
                 message['content'] = message['content'].split("</think>")[1]
-                print_logger.error("  ---- thinking removed: " + str(len(message['content'])))
         except:
             print_logger.error("error in cutting thinking off with", model)
             print_logger.error("message was:", message)
