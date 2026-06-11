@@ -13,8 +13,8 @@ import recon_prompting
 # -----------------------------
 
 # the model that will be used for this run 
-# model = 'groq' # use powerful online models
-model = 'llama3.2:latest' # use local ollama models
+model = 'groq' # use powerful online models
+# model = 'llama3.2:latest' # use local ollama models
 # model = 'gemma4:latest' # use local ollama models
 
 # initialize session state
@@ -300,7 +300,7 @@ if st.session_state.state == 'end':
     recon_util.render_message(recon_assets.get_localized_string('decision_subheader', st.session_state.language), ending_message)
 
     # /if 
-    
+
     st.markdown("")
     st.markdown("")
 

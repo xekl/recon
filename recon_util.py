@@ -48,7 +48,8 @@ def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
 
         try:
             response = groq_client.chat.completions.create(
-                model = "llama-3.3-70b-versatile",
+                # model = "llama-3.3-70b-versatile", # 100K TPD
+                model = "qwen/qwen3-32b", # 500k TPD
                 # max_tokens = max_tokens,
                 # temperature = temperature,
                 messages = messages)
@@ -63,6 +64,14 @@ def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
             print_logger.error("error in response generation with", model)
             print_logger.error("response was:", response)
             result = response
+
+        # remove thinking if model thought 
+        try:
+            if "</think>" in result: 
+                result = result.split("</think>")[1]
+        except:
+            print_logger.error("error in cutting thinking off with", model)
+            print_logger.error("result was:", result)       
 
         file_logger.debug("  get_llm_generation\n\n  with system-prompt:\n  " + system_prompt + "  \n\nwith prompt:\n  " + prompt + "  \n\nwith result:\n  " + result)
         print_logger.debug("  response logged in file: " + logfile)
@@ -118,9 +127,9 @@ def get_chat_response(system_prompt, chatlog, role, model="llama3.2:latest"):
     transcript = "\n".join(transcript_lines[-last_k:])
 
     # determine last speaker
-    last_speaker = None
-    if len(transcript_lines) > 0:
-        last_speaker = transcript_lines[-1].split(":", 1)[0]
+    # last_speaker = None
+    # if len(transcript_lines) > 0:
+    #     last_speaker = transcript_lines[-1].split(":", 1)[0]
     
     # user-style prompt including explicit instruction who should respond next
     user_prompt = recon_assets.get_localized_string('latest_messages', 'English') + "\n" + transcript + "\n\n----\n\n"
@@ -140,7 +149,8 @@ def get_chat_response(system_prompt, chatlog, role, model="llama3.2:latest"):
         message = {'role': "assistant", 'content': ""}
 
         response = groq_client.chat.completions.create(
-            model = "llama-3.3-70b-versatile",
+            # model = "llama-3.3-70b-versatile", # 100K TPD
+            model = "qwen/qwen3-32b", # 500k TPD
             messages = messages)
 
         # extract response text 
@@ -151,6 +161,16 @@ def get_chat_response(system_prompt, chatlog, role, model="llama3.2:latest"):
             print_logger.error("error in response generation with " + model + ": " + str(e))
             print_logger.error("response was:", response)
             message['content'] = str(response)
+
+        # remove thinking if model thought 
+        try:
+            if "</think>" in result: 
+                print_logger.error("  ---- thinking detected: " + str(len(message['content'])))
+                message['content'] = message['content'].split("</think>")[1]
+                print_logger.error("  ---- thinking removed: " + str(len(message['content'])))
+        except:
+            print_logger.error("error in cutting thinking off with", model)
+            print_logger.error("message was:", message)
 
         file_logger.debug("  get_chat_response\n\n  with system-prompt:\n  " + system_prompt + "  \n\nwith user-prompt:\n  " + user_prompt + "  \n\nwith result:\n  " + str(message))
         print_logger.debug("  response logged in file: " + logfile)
