@@ -161,48 +161,15 @@ def build_ending_prompts(chatlog, language, decision_a=None, decision_b=None):
 
     return ending_system_prompt, ending_prompt
 
-def build_module_impact_analysis_prompt(chatlog, modules, language):
-    """
-    Build a prompt to analyze how each enabled module influenced the conversation.
-    
-    Parameters:
-    - chatlog: dict with 'speakers' and 'messages' keys
-    - modules: dict of module name -> bool (True if present)
-    - language: current language setting
-    
-    Returns:
-    - system_prompt: analyzes from neutral perspective
-    - user_prompt: asks for impact summary of each enabled module
-    """
-    
-    # Get enabled modules
-    enabled_modules = [k for k, v in modules.items() if v]
-    
-    if not enabled_modules:
-        return "", ""
-    
+def build_single_module_impact_analysis_prompt(chatlog, module_name, module_description, language):
+
     system_prompt = recon_assets.get_localized_string("module_impact_analysis_system_prompt", language)
+    
     conversation_text = build_conversation_summary(chatlog, language)    
+    
     user_prompt = conversation_text + "\n----\n\n" + recon_assets.get_localized_string("module_impact_analysis_intro", language)
-    
-    # Add module information for each enabled module
-    module_descriptions = {
-        "present": {
-            "youth_exchange": recon_assets.get_localized_string("baukasten_present_representative_youth_exchange", language),
-            "academic_network": recon_assets.get_localized_string("baukasten_present_representative_academic_network", language),
-            "cultural_institute": recon_assets.get_localized_string("baukasten_present_representative_cultural_institute", language),
-            "historical_account": recon_assets.get_localized_string("baukasten_present_representative_historical_account", language),
-            "civil_society": recon_assets.get_localized_string("baukasten_present_representative_civil_society", language),
-        }
-    }
-    
-    for module_key in enabled_modules:
-        module_name = recon_assets.get_localized_string(module_key, language)
-        module_desc = module_descriptions.get("present", {}).get(module_key, "")
-        user_prompt += f"{recon_assets.get_localized_string('module_impact_analysis_module', language)}{module_name}\n"
-        user_prompt += f"{recon_assets.get_localized_string('module_impact_analysis_module_description', language)}{module_desc}\n"
-        user_prompt += recon_assets.get_localized_string("module_impact_analysis_query", language)
+    user_prompt += f"{recon_assets.get_localized_string('module_impact_analysis_module', language)}{module_name}\n"
+    user_prompt += f"{recon_assets.get_localized_string('module_impact_analysis_module_description', language)}{module_description}\n"
+    user_prompt += recon_assets.get_localized_string("module_impact_analysis_query", language)
     
     return system_prompt, user_prompt
-
-

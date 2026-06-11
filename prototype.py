@@ -255,13 +255,32 @@ if st.session_state.state == 'end':
 
     # Analyze module impacts ... (only on first load)
     if st.session_state.module_impacts == {}:
+
         recon_util.print_logger.debug("analyzing module impacts ...")
         enabled_modules = {k: v for k, v in st.session_state.modules.items() if v}
+        module_descriptions = {
+            "present": {
+                "youth_exchange": recon_assets.get_localized_string("baukasten_present_representative_youth_exchange", st.session_state.language),
+                "academic_network": recon_assets.get_localized_string("baukasten_present_representative_academic_network", st.session_state.language),
+                "cultural_institute": recon_assets.get_localized_string("baukasten_present_representative_cultural_institute", st.session_state.language),
+                "historical_account": recon_assets.get_localized_string("baukasten_present_representative_historical_account", st.session_state.language),
+                "civil_society": recon_assets.get_localized_string("baukasten_present_representative_civil_society", st.session_state.language),
+            }
+        }
+
+        module_impacts = {}
         if enabled_modules:
-            impact_system_prompt, impact_user_prompt = recon_prompting.build_module_impact_analysis_prompt(st.session_state.chatlog, st.session_state.modules, st.session_state.language)
-            impact_analysis = recon_util.get_llm_generation(impact_system_prompt, impact_user_prompt, model=model)
-            # Parse impacts from the analysis - extract module-specific impact summaries
-            st.session_state.module_impacts = recon_util.parse_module_impacts(impact_analysis, enabled_modules, st.session_state.language)
+            for module_key, module_value in enabled_modules.items():
+
+                module_name = recon_assets.get_localized_string(module_key, st.session_state.language)
+                module_description = module_descriptions.get("present", {}).get(module_key, "")
+
+                impact_system_prompt, impact_user_prompt = recon_prompting.build_single_module_impact_analysis_prompt(st.session_state.chatlog, module_name, module_description, st.session_state.language)
+                impact_analysis = recon_util.get_llm_generation(impact_system_prompt, impact_user_prompt, model=model)
+                module_impacts[module_key] = impact_analysis
+
+            st.session_state.module_impacts  = module_impacts
+
     # ... and display results
     module_markdown = ""
     for k, v in st.session_state.modules.items():
@@ -285,27 +304,26 @@ if st.session_state.state == 'end':
         
     recon_util.print_logger.debug("concluding scene with decision ...")
 
-    vote_prompt = recon_prompting.build_vote_prompt(st.session_state.chatlog, st.session_state.language)
-
-    # let both NPCs give their final statements
-    npc_a_decision = None
-    npc_b_decision = None
-    # role = "Representative"
-    # role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
-    # npc_a_decision = recon_util.get_llm_generation(role_system_prompt, vote_prompt, model=model)
-    # recon_util.render_message(role, npc_a_decision)
-    # role = "Trustee"
-    # role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
-    # npc_b_decision = recon_util.get_llm_generation(role_system_prompt, vote_prompt, model=model)
-    # recon_util.render_message(role, npc_b_decision)
-
     # tell the ending (if not already loaded)
     if st.session_state.ending_message is None:
+
+        vote_prompt = recon_prompting.build_vote_prompt(st.session_state.chatlog, st.session_state.language)
+
+        # let both NPCs give their final statements
+        npc_a_decision = None
+        npc_b_decision = None
+        # role = "Representative"
+        # role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
+        # npc_a_decision = recon_util.get_llm_generation(role_system_prompt, vote_prompt, model=model)
+        # recon_util.render_message(role, npc_a_decision)
+        # role = "Trustee"
+        # role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
+        # npc_b_decision = recon_util.get_llm_generation(role_system_prompt, vote_prompt, model=model)
+        # recon_util.render_message(role, npc_b_decision)
+
         ending_system_prompt, ending_prompt = recon_prompting.build_ending_prompts(st.session_state.chatlog, st.session_state.language, npc_a_decision, npc_b_decision)
         st.session_state.ending_message = recon_util.get_llm_generation(ending_system_prompt, ending_prompt, model=model)
         recon_util.render_message(recon_assets.get_localized_string('decision_subheader', st.session_state.language), st.session_state.ending_message)
-
-    # /if 
 
     st.markdown("")
     st.markdown("")
@@ -316,13 +334,13 @@ if st.session_state.state == 'end':
     transcript += module_markdown + "\n\n"
     transcript += recon_assets.get_localized_string('decision_subheader', st.session_state.language) + "\n" + st.session_state.ending_message
 
-    # send transcript to me for later viewing
+    # send transcript + full log to me for later viewing
     with open('debug_log.txt', 'r') as logfile:
         full_log = logfile.read()
         # recon_util.print_logger.debug("sending mail ...")
         # recon_util.send_log_email(full_log)
         recon_util.print_logger.debug("sending gist ...")
-        recon_util.save_log_as_gist(full_log)
+        recon_util.save_log_as_gist(transcript + "\n\n----=======----========----=======----\n\n" + full_log)
 
     # download transcript button
     if st.download_button(
