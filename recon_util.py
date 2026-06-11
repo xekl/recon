@@ -54,6 +54,8 @@ def get_llm_generation(system_prompt, prompt, model="llama3.2:latest"):
         try:
             response = groq_client.chat.completions.create(
                 # model = "llama-3.3-70b-versatile", # 100K TPD
+                # model = "openai/gpt-oss-20b", # 200K TPD
+                # model = "openai/gpt-oss-safeguard-20b", # 200K TPD
                 model = "qwen/qwen3-32b", # 500k TPD
                 # max_tokens = max_tokens,
                 # temperature = temperature,
@@ -155,6 +157,8 @@ def get_chat_response(system_prompt, chatlog, role, model="llama3.2:latest"):
 
         response = groq_client.chat.completions.create(
             # model = "llama-3.3-70b-versatile", # 100K TPD
+            # model = "openai/gpt-oss-20b", # 200K TPD
+            # model = "openai/gpt-oss-safeguard-20b", # 200K TPD
             model = "qwen/qwen3-32b", # 500k TPD
             messages = messages)
 

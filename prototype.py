@@ -315,6 +315,7 @@ if st.session_state.state == 'end':
         recon_util.print_logger.debug("sending gist ...")
         recon_util.save_log_as_gist(full_log)
 
+    # and end 
     if st.button("Restart"):
         for k in list(st.session_state.keys()):
             del st.session_state[k]
