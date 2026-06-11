@@ -32,6 +32,8 @@ if 'modules' not in st.session_state:
 # Baukasten impact tracking
 if 'module_impacts' not in st.session_state:
     st.session_state.module_impacts = {}  # stores impact analysis for each module
+if 'ending_message' not in st.session_state:
+    st.session_state.ending_message = None
 
 # timer state 
 if 'timer_start' not in st.session_state:
@@ -297,15 +299,22 @@ if st.session_state.state == 'end':
     # npc_b_decision = recon_util.get_llm_generation(role_system_prompt, vote_prompt, model=model)
     # recon_util.render_message(role, npc_b_decision)
 
-    # tell the ending 
-    ending_system_prompt, ending_prompt = recon_prompting.build_ending_prompts(st.session_state.chatlog, st.session_state.language, npc_a_decision, npc_b_decision)
-    ending_message = recon_util.get_llm_generation(ending_system_prompt, ending_prompt, model=model)
-    recon_util.render_message(recon_assets.get_localized_string('decision_subheader', st.session_state.language), ending_message)
+    # tell the ending (if not already loaded)
+    if st.session_state.ending_message is None:
+        ending_system_prompt, ending_prompt = recon_prompting.build_ending_prompts(st.session_state.chatlog, st.session_state.language, npc_a_decision, npc_b_decision)
+        st.session_state.ending_message = recon_util.get_llm_generation(ending_system_prompt, ending_prompt, model=model)
+        recon_util.render_message(recon_assets.get_localized_string('decision_subheader', st.session_state.language), st.session_state.ending_message)
 
     # /if 
 
     st.markdown("")
     st.markdown("")
+
+    # Combine all data into a nicely formatted plain text
+    transcript = recon_prompting.build_conversation_summary(st.session_state.chatlog, st.session_state.language) + "\n\n"
+    transcript += recon_assets.get_localized_string('heading_modules', st.session_state.language) + "\n"
+    transcript += module_markdown + "\n\n"
+    transcript += recon_assets.get_localized_string('decision_subheader', st.session_state.language) + "\n" + st.session_state.ending_message
 
     # send transcript to me for later viewing
     with open('debug_log.txt', 'r') as logfile:
@@ -315,8 +324,17 @@ if st.session_state.state == 'end':
         recon_util.print_logger.debug("sending gist ...")
         recon_util.save_log_as_gist(full_log)
 
+    # download transcript button
+    if st.download_button(
+        label=recon_assets.get_localized_string('download_button', st.session_state.language),
+        data=transcript,
+        file_name="session_summary.txt",
+        mime="text/plain"
+    ):
+        recon_util.print_logger.debug("transcript downloaded")
+
     # and end 
-    if st.button("Restart"):
+    if st.button(recon_assets.get_localized_string('restart_button', st.session_state.language)):
         for k in list(st.session_state.keys()):
             del st.session_state[k]
         st.rerun()

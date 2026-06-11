@@ -16,7 +16,7 @@ def build_conversation_summary(chatlog, language, max_messages=None):
     - Formatted conversation text with speaker names and content
     """
 
-    conversation_text = recon_assets.get_localized_string('latest_messages', language)
+    conversation_text = recon_assets.get_localized_string('latest_messages', language) + "\n"
     message_indices = sorted(chatlog.get('speakers').keys())
     if max_messages is None:
         max_messages = len(message_indices)
@@ -28,7 +28,7 @@ def build_conversation_summary(chatlog, language, max_messages=None):
     for i in message_indices:
         speaker = chatlog.get('speakers').get(i)
         content = chatlog.get('messages').get(i).get('content')
-        conversation_text += f"{speaker}: {content}\n\n"
+        conversation_text += f"{speaker}: {content.strip().replace("\n", "")}\n\n"
 
     return conversation_text
 

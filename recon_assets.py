@@ -73,6 +73,8 @@ def get_localized_string(text, lang="English"):
         "decision_text": {"English": "After a heated discussion, eventually, the parties conclude ..."},
         "time_is_up_text": {"English": "The time for discussion is up. Please conclude the scene for the final decision."},
         "time_remaining_text": {"English": "Time Remaining"},
+        "download_button": {"English": "Download Transcript"},
+        "restart_button": {"English": "Restart"},
 
         # Modellbaukasten modules 
         "youth_exchange": {
