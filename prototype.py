@@ -246,7 +246,7 @@ if st.session_state.state == 'scene':
 if st.session_state.state == 'end':
     
     st.header(recon_assets.get_localized_string('end_header', st.session_state.language))
-    st.subheader(recon_assets.get_localized_string('heading_modules', st.session_state.language))
+    # st.subheader(recon_assets.get_localized_string('heading_modules', st.session_state.language))
 
     # Analyze module impacts ... (only on first load)
     if st.session_state.module_impacts == {}:
@@ -271,34 +271,36 @@ if st.session_state.state == 'end':
         module_markdown += f"- {status} - {module_name}{impact_text}\n"
     st.markdown(module_markdown)
     
-    st.subheader(recon_assets.get_localized_string('decision_subheader', st.session_state.language))
+    # st.subheader(recon_assets.get_localized_string('decision_subheader', st.session_state.language))
     st.markdown(recon_assets.get_localized_string('decision_text', st.session_state.language))
     
-    if st.button("Decide!"):
+    # if the decision should not be computed/printed automatically, 
+    # this adds a button to manually trigger it 
+    # if st.button("Decide!"): 
         
-        # TODO trigger automatically?
+    recon_util.print_logger.debug("concluding scene with decision ...")
 
-        recon_util.print_logger.debug("concluding scene with decision ...")
+    vote_prompt = recon_prompting.build_vote_prompt(st.session_state.chatlog, st.session_state.language)
 
-        vote_prompt = recon_prompting.build_vote_prompt(st.session_state.chatlog, st.session_state.language)
+    # let both NPCs give their final statements
+    npc_a_decision = None
+    npc_b_decision = None
+    # role = "Representative"
+    # role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
+    # npc_a_decision = recon_util.get_llm_generation(role_system_prompt, vote_prompt, model=model)
+    # recon_util.render_message(role, npc_a_decision)
+    # role = "Trustee"
+    # role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
+    # npc_b_decision = recon_util.get_llm_generation(role_system_prompt, vote_prompt, model=model)
+    # recon_util.render_message(role, npc_b_decision)
 
-        # let both NPCs give their final statements
-        npc_a_decision = None
-        npc_b_decision = None
-        # role = "Representative"
-        # role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
-        # npc_a_decision = recon_util.get_llm_generation(role_system_prompt, vote_prompt, model=model)
-        # recon_util.render_message(role, npc_a_decision)
-        # role = "Trustee"
-        # role_system_prompt = recon_prompting.build_system_prompt(st.session_state.modules, role, st.session_state.language)
-        # npc_b_decision = recon_util.get_llm_generation(role_system_prompt, vote_prompt, model=model)
-        # recon_util.render_message(role, npc_b_decision)
+    # tell the ending 
+    ending_system_prompt, ending_prompt = recon_prompting.build_ending_prompts(st.session_state.chatlog, st.session_state.language, npc_a_decision, npc_b_decision)
+    ending_message = recon_util.get_llm_generation(ending_system_prompt, ending_prompt, model=model)
+    recon_util.render_message(recon_assets.get_localized_string('decision_subheader', st.session_state.language), ending_message)
 
-        # tell the ending 
-        ending_system_prompt, ending_prompt = recon_prompting.build_ending_prompts(st.session_state.chatlog, st.session_state.language, npc_a_decision, npc_b_decision)
-        ending_message = recon_util.get_llm_generation(ending_system_prompt, ending_prompt, model=model)
-        recon_util.render_message(recon_assets.get_localized_string('decision_subheader', st.session_state.language), ending_message)
-
+    # /if 
+    
     st.markdown("")
     st.markdown("")
 
