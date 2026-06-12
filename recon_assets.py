@@ -1,5 +1,5 @@
 
-# configuration page text s
+# configuration page texts
 
 config_text_en = """Welcome! 
 
@@ -35,11 +35,15 @@ They also form the **academic backdrop**. The post-war reconciliation between Ge
 On the worldbuilding tab, you can **select your individual configuration** of which historical Modellbaukasten modules are present in this fictional conflict world and which are absent. These are the instruments that may or may not exist between the two communities. They shape how each side in the conflict frames the other, their experiences, their suspicions, their capacity for empathy. Choose deliberately. Will you feel the difference?
 """
 
+
+# AI explanation tab texts
+
 experience_text_en = """This thought experiment is not a plausible Modellbaukasten simulation, it cannot realistically model reconciliation processes with accuracy or predictive power. The Modellbaukasten is as much a part of this as are your intentions and strategies, and the idiosyncrasies of the LLMs used. The experience is meant to be a **dramatic experience that uses the structural logic of reconciliation theory as its world-building backbone, generating a personal, emotionally immediate encounter with what reconciliation actually feels like at the human scale** — in a single room, between three people, right before an important decision. It should start a discussion of what really is needed for reconciliation.
 
 The characters to whom you talk are LLM-based, that means you are chatting with a roleplaying AI. The characteristics of such language models play a role in how the experience works out. Most of them are trained and configured to be friendly, respectful and eager to help. Conflict is hard to maintain for them and the characters might be easy to convince with creative techniques that do not target reconciliation itself. You are asked to play along and use the role of the Mediator to immerse in the experience, but feel free to experiment with the technology, too, if you wish!
 """
-# TODO 
+
+# scene intro texts
 
 scene_text_en = """You stand in a quiet museum room. At the center is a glass case, empty. The ancestral remains which the label announces are not on display. Now.
 
@@ -47,8 +51,6 @@ Two persons are with you. The **Representative**: A visitor from the country fro
 
 **You have been called here to be their Mediator**, aiding them in finding a solution. Every conversation is different. The characters are played by AI and react to your selected world state as well as your words.
 """
-
-decision_text_en = """TODO"""
 
 # Localization
 def get_localized_string(text, lang="English"):
@@ -281,4 +283,3 @@ def get_localized_string(text, lang="English"):
 
     }
     return translations.get(text, {}).get(lang, text)
-
